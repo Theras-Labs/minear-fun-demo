@@ -1,0 +1,32 @@
+node_modules
+dist
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# NEAR: account keys never leave this machine; Rust contract build output
+server/.keys
+contracts/*/target
+
+# working notes of the port: kept local
+reference
+
+# dev helpers (logo builder, port self-check, headless probe): not part of the game or the deploy
+scripts
+
+# rendered videos (scripts/intro-render.mjs): large binaries, kept local
+renders
+
+# NEAR local chain (near-sandbox binary and chain data, minear-r3f/server/tools/local.ts)
+server/.sandbox
+
+# relayer day counts and top-up totals (minear-r3f/server/src/budget.ts)
+server/.state
+
+# local settings: copy .env.example to .env.local (Vite and bun read it)
+.env
+.env.local
+.env.*.local
+
+# design notes of features in development: kept local (README: next features are not shown here)
+docs
