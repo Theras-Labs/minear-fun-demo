@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MINEAR">
+<title>MINEAR</title>
+<defs>
+  <linearGradient id="fur" x1="0" y1="150" x2="0" y2="450" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#86644e"/><stop offset="1" stop-color="#5a4232"/></linearGradient>
+  <linearGradient id="hat" x1="0" y1="84" x2="0" y2="216" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffc06a"/><stop offset=".5" stop-color="#ff9227"/><stop offset="1" stop-color="#e86c12"/></linearGradient>
+  <linearGradient id="rib" x1="0" y1="84" x2="0" y2="216" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffd99a"/><stop offset="1" stop-color="#ffa244"/></linearGradient>
+  <linearGradient id="peak" x1="0" y1="186" x2="0" y2="262" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffb04a"/><stop offset=".45" stop-color="#f58420"/><stop offset="1" stop-color="#d9600f"/></linearGradient>
+  <radialGradient id="nose" cx=".4" cy=".3" r=".8">
+    <stop offset="0" stop-color="#ffc0d2"/><stop offset=".55" stop-color="#ff86ab"/><stop offset="1" stop-color="#e2507f"/></radialGradient>
+  <linearGradient id="gold" x1="0" y1="400" x2="0" y2="610" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#fff3b0"/><stop offset=".38" stop-color="#ffd24a"/><stop offset="1" stop-color="#f0922a"/></linearGradient>
+  <linearGradient id="mint" x1="0" y1="400" x2="0" y2="610" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#dcfff2"/><stop offset=".4" stop-color="#4ef0b3"/><stop offset="1" stop-color="#10b47d"/></linearGradient>
+  <radialGradient id="coin" cx=".36" cy=".3" r=".85">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e8ecf0"/><stop offset="1" stop-color="#c2c9d1"/></radialGradient>
+  <radialGradient id="glow">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+</defs>
+
+  <clipPath id="tile"><rect width="512" height="512" rx="112"/></clipPath>
+  <radialGradient id="tilebg" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#3a2f72"/><stop offset="1" stop-color="#161230"/></radialGradient>
+  <g clip-path="url(#tile)">
+    <rect width="512" height="512" fill="url(#tilebg)"/>
+    <g transform="translate(-319,-44) scale(1.15)">
+  <path d="M335,440 C335,300 395,150 500,150 C605,150 665,300 665,440 Z" fill="url(#fur)" stroke="#3a281c" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M356,420 C352,334 372,270 400,240" fill="none" stroke="#a07e63" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+  <path d="M350,262 Q500,236 650,262 L650,282 Q500,258 350,282 Z" fill="#2a1b12" opacity=".22"/>
+  <!-- hard hat: shell, three raised ribs, a mint gem sticker, scuffs, then the front peak -->
+  <path d="M368,218 C366,128 424,82 500,82 C576,82 634,128 632,218 Z" fill="url(#hat)"/>
+  <path d="M480,86 C476,130 472,176 470,216 H530 C528,176 524,130 520,86 Z" fill="url(#rib)" stroke="#3a281c" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M458,92 C428,112 410,160 408,216" fill="none" stroke="#3a281c" stroke-width="6" stroke-linecap="round"/>
+  <path d="M542,92 C572,112 590,160 592,216" fill="none" stroke="#3a281c" stroke-width="6" stroke-linecap="round"/>
+  <path d="M450,96 C422,118 404,160 402,214" fill="none" stroke="#ffd18a" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+  <path d="M368,218 C366,128 424,82 500,82 C576,82 634,128 632,218" fill="none" stroke="#3a281c" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M384,186 Q388,140 420,112" fill="none" stroke="#ffe2b8" stroke-width="10" stroke-linecap="round" opacity=".85"/>
+  <g transform="translate(500,156)">
+    <circle r="32" fill="url(#coin)" stroke="#3a281c" stroke-width="6"/>
+    <circle r="25" fill="none" stroke="#c8cfd7" stroke-width="3"/>
+    <path d="M72.2 4.6L53.4 32.5c-1.3 1.9 1.2 4.2 3 2.6L74.9 19c.5-.4 1.2-.1 1.2.6v50.3c0 .7-.9 1-1.3.5l-56-67C17 1.2 14.4 0 11.5 0h-2C4.3 0 0 4.3 0 9.6v70.8C0 85.7 4.3 90 9.6 90c3.3 0 6.4-1.7 8.2-4.6l18.8-27.9c1.3-1.9-1.2-4.2-3-2.6L15.1 70.8c-.5.4-1.2.1-1.2-.6V20.1c0-.7.9-1 1.3-.5l56 67c1.8 2.2 4.5 3.4 7.3 3.4h2c5.3 0 9.6-4.3 9.6-9.6V9.6c0-5.3-4.3-9.6-9.6-9.6-3.4 0-6.5 1.7-8.3 4.6z" transform="translate(-17,-17) scale(0.378)" fill="#24282f"/>
+  </g>
+  <g stroke="#a94a0c" stroke-width="5" stroke-linecap="round" opacity=".55"><path d="M566,150 l12,-6 M574,168 l14,-4 M560,186 l9,-2"/></g>
+  <path d="M342,214 Q500,184 658,214 Q676,234 656,250 Q500,272 344,250 Q324,234 342,214 Z" fill="url(#peak)" stroke="#3a281c" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M360,222 Q500,198 640,222" fill="none" stroke="#ffc678" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+  <ellipse cx="500" cy="338" rx="86" ry="56" fill="#ecd2b4"/>
+  <ellipse cx="420" cy="318" rx="22" ry="11" fill="#ff8fae" opacity=".5"/>
+  <ellipse cx="580" cy="318" rx="22" ry="11" fill="#ff8fae" opacity=".5"/>
+  <ellipse cx="448" cy="280" rx="12" ry="15" fill="#1d1424"/>
+  <ellipse cx="552" cy="280" rx="12" ry="15" fill="#1d1424"/>
+  <circle cx="444" cy="274" r="4.5" fill="#ffffff"/>
+  <circle cx="548" cy="274" r="4.5" fill="#ffffff"/>
+  <g stroke="#f6e7d2" stroke-width="5" stroke-linecap="round">
+    <path d="M416,332 L356,320 M416,346 L352,352"/>
+    <path d="M584,332 L644,320 M584,346 L648,352"/>
+  </g>
+  <path d="M474,358 Q487,372 500,360 Q513,372 526,358" fill="none" stroke="#3a281c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="500" cy="314" rx="41" ry="30" fill="url(#nose)" stroke="#3a281c" stroke-width="9"/>
+  <ellipse cx="486" cy="321" rx="6" ry="8" fill="#a92d57"/>
+  <ellipse cx="514" cy="321" rx="6" ry="8" fill="#a92d57"/>
+  <ellipse cx="489" cy="302" rx="13" ry="6" fill="#ffffff" opacity=".75"/>
+</g>
+    <ellipse cx="256" cy="540" rx="330" ry="92" fill="#6b4a33" stroke="#3a281c" stroke-width="14"/>
+    <ellipse cx="256" cy="548" rx="300" ry="70" fill="#7d573c"/>
+  </g>
+
+</svg>
