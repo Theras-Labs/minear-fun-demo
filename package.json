@@ -1,0 +1,43 @@
+{
+  "name": "minear-r3f",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "preview": "vite preview --host 0.0.0.0",
+    "server": "bun --watch server/src/main.ts",
+    "near:setup": "bun server/tools/setup.ts --root minear.testnet",
+    "near:smoke": "bun server/tools/smoke.ts",
+    "near:bots": "bun server/tools/bots.ts",
+    "dev:local": "bun server/tools/localChain.ts --stack",
+    "dev:testnet": "bun server/tools/devTestnet.ts",
+    "local:chain": "bun server/tools/localChain.ts",
+    "local:setup": "MINEAR_NETWORK=local bun server/tools/setup.ts",
+    "local:server": "MINEAR_NETWORK=local bun --watch server/src/main.ts",
+    "local:bots": "MINEAR_NETWORK=local MINEAR_SERVER=http://127.0.0.1:8788 bun server/tools/bots.ts",
+    "contract:test": "cd contracts/items && cargo test",
+    "contract:build": "cd contracts/items && cargo near build non-reproducible-wasm --no-abi"
+  },
+  "dependencies": {
+    "@auth0/auth0-spa-js": "2.30.0",
+    "@hot-labs/near-connect": "0.12.0",
+    "@react-three/fiber": "9.8.1",
+    "near-api-js": "7.5.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "0.186.1",
+    "three-mesh-bvh": "0.9.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/three": "0.186.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.1"
+  }
+}
