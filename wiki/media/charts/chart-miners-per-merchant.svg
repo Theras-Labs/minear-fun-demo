@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 492" width="880" height="492" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" role="img" aria-label="How many miners can one merchant serve?">
+<rect width="880" height="492" rx="10" fill="#1a1a19"/>
+<text x="64" y="28" fill="#f0efec" font-size="16" font-weight="700">How many miners can one merchant serve?</text>
+<text x="64" y="47" fill="#c3c2b7" font-size="12">Brann the Smelter, a steady number of miners, averages of days 30 to 60 of each run.</text>
+<text x="64" y="76" fill="#f0efec" font-size="13" font-weight="600">What Brann pays, as a share of the base price</text>
+<line x1="64" x2="730" y1="290" y2="290" stroke="#6b6a64" stroke-width="1"/>
+<text x="56" y="294" fill="#c3c2b7" font-size="11" text-anchor="end">0%</text>
+<line x1="64" x2="730" y1="240" y2="240" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="244" fill="#c3c2b7" font-size="11" text-anchor="end">25%</text>
+<line x1="64" x2="730" y1="190" y2="190" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="194" fill="#c3c2b7" font-size="11" text-anchor="end">50%</text>
+<line x1="64" x2="730" y1="140" y2="140" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="144" fill="#c3c2b7" font-size="11" text-anchor="end">75%</text>
+<line x1="64" x2="730" y1="90" y2="90" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="94" fill="#c3c2b7" font-size="11" text-anchor="end">100%</text>
+<path d="M64.0 161.4L81.1 161.4L115.2 247.1L149.4 261.4L183.5 261.4L217.7 261.4L251.8 275.7L320.2 275.4L388.5 275.2L456.8 275.7L593.4 275.7L730.0 275.7" fill="none" stroke="#c98500" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M64.0 170.0L81.1 170.0L115.2 210.0L149.4 250.0L183.5 250.0L217.7 250.0L251.8 250.0L320.2 250.0L388.5 250.0L456.8 250.0L593.4 250.0L730.0 250.0" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M64.0 190.0L81.1 190.0L115.2 190.0L149.4 190.0L183.5 190.0L217.7 190.0L251.8 190.0L320.2 190.0L388.5 190.0L456.8 190.0L593.4 190.0L730.0 190.0" fill="none" stroke="#d95926" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="736" x2="750" y1="190" y2="190" stroke="#d95926" stroke-width="2"/>
+<text x="755" y="194" fill="#f0efec" font-size="11.5">copper</text>
+<line x1="736" x2="750" y1="250" y2="250" stroke="#3987e5" stroke-width="2"/>
+<text x="755" y="254" fill="#f0efec" font-size="11.5">iron</text>
+<line x1="736" x2="750" y1="275.7142857142857" y2="275.7142857142857" stroke="#c98500" stroke-width="2"/>
+<text x="755" y="279.7142857142857" fill="#f0efec" font-size="11.5">gold</text>
+<text x="64" y="324" fill="#f0efec" font-size="13" font-weight="600">Share of the time Brann's shop is closed</text>
+<line x1="64" x2="730" y1="448" y2="448" stroke="#6b6a64" stroke-width="1"/>
+<text x="56" y="452" fill="#c3c2b7" font-size="11" text-anchor="end">0%</text>
+<line x1="64" x2="730" y1="420.5" y2="420.5" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="424.5" fill="#c3c2b7" font-size="11" text-anchor="end">25%</text>
+<line x1="64" x2="730" y1="393" y2="393" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="397" fill="#c3c2b7" font-size="11" text-anchor="end">50%</text>
+<line x1="64" x2="730" y1="365.5" y2="365.5" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="369.5" fill="#c3c2b7" font-size="11" text-anchor="end">75%</text>
+<line x1="64" x2="730" y1="338" y2="338" stroke="#34332f" stroke-width="1"/>
+<text x="56" y="342" fill="#c3c2b7" font-size="11" text-anchor="end">100%</text>
+<path d="M64.0 448.0L81.1 448.0L115.2 448.0L149.4 448.0L183.5 448.0L217.7 448.0L251.8 448.0L320.2 399.6L388.5 354.0L456.8 342.6L593.4 342.6L730.0 342.6" fill="none" stroke="#3987e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="736" x2="750" y1="342.57697642163663" y2="342.57697642163663" stroke="#3987e5" stroke-width="2"/>
+<text x="755" y="346.57697642163663" fill="#f0efec" font-size="11.5">closed</text>
+<text x="64" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">5</text>
+<text x="115.23076923076923" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">20</text>
+<text x="183.53846153846155" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">40</text>
+<text x="251.84615384615384" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">60</text>
+<text x="320.1538461538462" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">80</text>
+<text x="388.46153846153845" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">100</text>
+<text x="456.7692307692308" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">120</text>
+<text x="593.3846153846154" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">160</text>
+<text x="730" y="464" fill="#c3c2b7" font-size="11" text-anchor="middle">200</text>
+<text x="397" y="482" fill="#c3c2b7" font-size="11.5" text-anchor="middle">Active miners (steady)</text>
+</svg>

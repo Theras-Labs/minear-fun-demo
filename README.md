@@ -2,135 +2,246 @@
 
 A mining game on NEAR. You burrow down as a mole, mine ores and gems, and keep what you mine on chain.
 
-> **Status: demo-level prototype on NEAR testnet.**
-> Testnet NEAR and the game's items have no money value. Balances, boards and accounts can be reset.
-> Features in development are not shown in this repository.
+**Play the demo: https://testnet.minear.fun**
 
-## Live on NEAR testnet
+> **Status: a limited demo prototype on NEAR testnet.**
+> - Testnet NEAR and the game's items have no money value. Balances, boards and accounts can be reset.
+> - The game features in this build are also a limited demo: **depth, the core, boss souls and gear** (see
+>   [Demo limits](#demo-limits)).
+> - It runs on **NEAR testnet** (https://testnet.minear.fun), and on a **local testnet** on your own computer,
+>   where a cheat system is on for fast testing.
+> - Features in development are not shown in this repository.
 
-The game runs on the real NEAR testnet. All game accounts are under `minear.testnet`.
+<table>
+<tr>
+<td width="50%"><img src="wiki/media/play-mining.gif" alt="Mining underground"><br><sub>Mine: burrow through the ground with your claws.</sub></td>
+<td width="50%"><img src="wiki/media/play-merchant.gif" alt="Trading with a merchant"><br><sub>Trade: six NPC merchants with their own NEAR wallets set the prices.</sub></td>
+</tr>
+</table>
+
+## Documents
+
+This README is the overview. Each topic has its own document.
+
+| Document | What it has |
+| - | - |
+| [Merchants](wiki/ai-merchants.md) | The NPC merchants, how they set a price, and a market study over time: Open Supply and Capped Supply |
+| [Contracts](wiki/contracts.md) | The game contract, the accounts, the flows on chain, gas and storage |
+| [Catalog](wiki/catalog.md) | Gear, effect list, skill tree and materials, with the game's own art |
+| [How to run](wiki/run.md) | NEAR testnet, the local testnet with cheats, the contract tests, settings |
+
+## Contents
+
+1. [The economy is the gameplay](#the-economy-is-the-gameplay)
+2. [Gameplay](#gameplay)
+3. [NPC merchants](#npc-merchants)
+4. [Gear, effects and the skill tree](#gear-effects-and-the-skill-tree)
+5. [On NEAR: the contract](#on-near-the-contract)
+6. [Sign in with Google on a dev run](#sign-in-with-google-on-a-dev-run)
+7. [Demo limits](#demo-limits)
+8. [How to run](#how-to-run)
+9. [Trailer](#trailer)
+10. [License](#license)
+
+## The economy is the gameplay
+
+The brief of this build:
+
+> **The economy is the gameplay.** Build NPCs with wallets, player-owned markets and economies that evolve
+> without a dev patch. Judged on the game loop, not the token. Bonus if players never notice the chain.
+
+How MINEAR answers each part:
+
+| The brief | In MINEAR |
+| - | - |
+| NPCs with wallets | Six merchants. Each one is a NEAR account with its own key, its own stock and its own coins. Each one signs its own price offers. |
+| Player-owned markets | A merchant with no cash closes. Players invest to open it again and become its shareholders: they get 125% back from its later sales. What players mine, sell, buy and burn is the only thing that moves a price. |
+| Economies that evolve without a dev patch | `price = base x STOCK x DEMAND x WORLD`. Each factor is a fact on the chain. No developer sets a price, and nothing runs on a timer. |
+| The game loop, not the token | Mine, come home, forge gear, go deeper. Trips give materials only. The coin is a tool for trade. |
+| Players never notice the chain | Sign in with Google. No seed phrase, no wallet popup, no gas, no claim step. A trip is saved on chain when it ends. |
+
+```mermaid
+flowchart LR
+    MINE["Mine<br/>ores and gems"] --> TRIP["Finish mining trip<br/>saved on chain, no claim"]
+    TRIP --> FORGE["Forge and skill tree<br/>burn materials, mint gear NFTs"]
+    TRIP --> SELL["Sell to a merchant"]
+    SELL --> PRICE["The price moves<br/>stock, demand, world supply"]
+    PRICE --> BUY["Other players buy<br/>or the caravan takes the surplus"]
+    FORGE --> DEEP["Go deeper<br/>better claws, rarer gems"]
+    BUY --> FORGE
+    DEEP --> MINE
+```
+
+## Gameplay
+
+The loop, one part at a time:
+<table>
+<tr>
+<td width="50%"><img src="wiki/media/play-mining.gif" alt="Mining"><br><b>1. Mine.</b> All the ground can be mined. The claws wear, so better claws go deeper.</td>
+<td width="50%"><img src="wiki/media/play-trip-finished.gif" alt="Trip finished"><br><b>2. Finish the mining trip.</b> The summary shows the depth and the materials. The game saves them on chain at once.</td>
+</tr>
+<tr>
+<td width="50%"><img src="wiki/media/play-forge.gif" alt="Forge"><br><b>3. Forge gear.</b> Materials are burned and the gear is minted as an NFT in one call. The chain rolls the rarity.</td>
+<td width="50%"><img src="wiki/media/play-forge-x10.gif" alt="Forge x10"><br><b>4. Make ten at once.</b> One call, ten pieces, one Legendary at most.</td>
+</tr>
+<tr>
+<td width="50%"><img src="wiki/media/play-gear.gif" alt="Gear page"><br><b>5. Equip.</b> Compare pieces and swap. The stats change at once.</td>
+<td width="50%"><img src="wiki/media/play-merchant.gif" alt="Merchant"><br><b>6. Trade.</b> Fly to a merchant's island and sell or buy. Each trade moves the price.</td>
+</tr>
+</table>
+
+## NPC merchants
+
+A merchant is an NPC with its own NEAR account. It stands at a stall on a floating island near the base. It
+holds stock and coins, and it is always ready to buy and to sell. There is no order book. Each time a player
+asks, the merchant reads the market from the contract, computes a price, and signs an offer that the contract
+accepts for 20 seconds.
+
+<table>
+<tr>
+<td width="50%"><img src="wiki/media/merchant-npc.png" alt="Pip the Gem Cutter at his stall"><br><sub>Walk up to a merchant and press E.</sub></td>
+<td width="50%"><img src="wiki/media/merchant-breakdown.png" alt="The shop window with numbered parts"><br><sub>The shop: prices, stock, world supply and the latest trades. The image is from the local testnet.</sub></td>
+</tr>
+</table>
+
+How a merchant decides:
+
+```mermaid
+flowchart TD
+    Q["A player asks for a price"] --> C{"Shop open?"}
+    C -- "no: broke" --> I["Closed until a player invests"]
+    C -- yes --> F["Read the chain facts"]
+    F --> S["STOCK<br/>full shelves pay less"]
+    F --> D["DEMAND<br/>24 h buying and selling"]
+    F --> W["WORLD<br/>24 h mined minus used up"]
+    S --> P["price = base x STOCK x DEMAND x WORLD"]
+    D --> P
+    W --> P
+    P --> SIGN["The merchant signs the quote with its own key"]
+    SIGN --> T["The contract checks the signature and swaps"]
+    T --> F
+```
+
+The market over time, from the model in the merchants document:
+
+<table>
+<tr>
+<td width="50%"><img src="wiki/media/charts/chart-rush-month.svg" alt="A rush month"><br><sub>A rush: more miners, lower price, and a shop that runs out of cash.</sub></td>
+<td width="50%"><img src="wiki/media/charts/chart-whatif-scaled.svg" alt="Open Supply and Capped Supply"><br><sub>Open Supply and Capped Supply, three years, with merchants sized for the crowd (a what-if).</sub></td>
+</tr>
+</table>
+
+**Open Supply and Capped Supply.** The economy that runs now is **Open Supply**: mining has no supply limit,
+and only an hourly cap and a cooldown limit a player. **Capped Supply** is a proposal that is not built: each
+material has a maximum that can be mined, and the find chance falls as the supply runs out.
+
+**Fast-forward (local testnet only).** The shop image above shows a Fast-forward bar (x1, x60, x600, x3600).
+It is from the local testnet run of 2026-11-14 and it moved only the local market clock. The current code moves
+the local market with bot miners. It was never on NEAR testnet.
+
+Read more: **[Merchants: rules, flows and the market study](wiki/ai-merchants.md)**.
+
+## Gear, effects and the skill tree
+
+Gear is an NFT on NEAR (NEP-171). The Forge runs in the contract: it burns the materials, rolls the rarity from
+the block's random seed and mints the piece. Each piece keeps a seed, and every client turns the seed into the
+same effect lines. Skill tree levels are paid by burning on-chain materials.
+
+<table>
+<tr>
+<td width="50%"><img src="wiki/media/skill-tree.png" alt="Skill tree"><br><sub>Skill tree: 27 abilities, 105 levels, four branches.</sub></td>
+<td width="50%"><img src="wiki/media/effect-list-top.png" alt="Effect list"><br><sub>Effect list: every gear stat and its value at each rarity.</sub></td>
+</tr>
+</table>
+
+Read more: **[Catalog: gear, effects, skill tree and materials](wiki/catalog.md)**.
+
+## On NEAR: the contract
+
+The game runs on the real NEAR testnet. All game accounts are under `minear.testnet`, and one contract,
+`items.minear.testnet`, holds everything.
+
+```mermaid
+flowchart LR
+    G["The game<br/>game key in the browser"] -- "signed action" --> R["Relayer<br/>pays the gas"]
+    R --> C["items.minear.testnet"]
+    A["6 merchant agents<br/>own keys"] -- "signed quotes" --> G
+    C --> MT["Materials and coin<br/>NEP-245"]
+    C --> NFT["Gear<br/>NEP-171"]
+    C --> TR["Trips and boards"]
+    C --> MK["Market: stock, cash,<br/>24 h flows, caravans"]
+```
 
 | Account | Role | Explorer |
 | - | - | - |
-| `items.minear.testnet` | The game contract (one contract for everything below) | [view](https://testnet.nearblocks.io/address/items.minear.testnet) |
-| `minear.testnet` | Owner of the contract. Creates player accounts and tops up storage and gas. | [view](https://testnet.nearblocks.io/address/minear.testnet) |
-| `relay.minear.testnet` | Gas relayer: pays the gas of players who hold no NEAR | [view](https://testnet.nearblocks.io/address/relay.minear.testnet) |
-| `smelter`, `gemcutter`, `jeweler`, `wanderer`, `quartermaster`, `relics` `.minear.testnet` | Merchants. They sign price quotes. | |
-| `<name>.minear.testnet` | Players who sign in with Google | |
+| `items.minear.testnet` | The game contract | [view](https://testnet.nearblocks.io/address/items.minear.testnet) |
+| `minear.testnet` | Owner of the contract. Creates player accounts. | [view](https://testnet.nearblocks.io/address/minear.testnet) |
+| `relay.minear.testnet` | Gas relayer | [view](https://testnet.nearblocks.io/address/relay.minear.testnet) |
 
-The public account ids are also in `src/economy/deploy.testnet.json`.
+- **No popups.** Each way in ends with a game key in the browser: a function-call key for the game contract
+  only, with no deposit. It can make game moves. It cannot move NEAR or gear.
+- **No gas for new players.** The relayer pays for accounts that hold less than 0.15 NEAR, up to 240 actions
+  for each account in one UTC day.
+- **No claim step.** When a trip ends, one call mints the materials, records the trip and updates the boards.
 
-### What the contract holds
+Read more: **[Contracts: methods, flows, gas and storage](wiki/contracts.md)**.
 
-- **Materials and the game coin:** NEP-245 multi-tokens (ores, gems, boss souls, coin).
-- **Gear:** NEP-171 NFTs (with NEP-177 metadata and NEP-181 enumeration) in the same contract. The Forge burns
-  materials and mints the gear in one call. The rarity comes from the block's random seed. Each piece keeps a seed,
-  and the game turns the seed into stats with the same rules for every player.
-- **Trips and boards:** each finished mining trip, each player's record, the last 30 trips of the world, the
-  Depth board and the Mined board.
-- **Market:** merchants with stock and coins. A trade uses a price that the merchant signed.
+## Sign in with Google on a dev run
 
-## How the live system works
-
-### Ways in
-
-1. **Continue with Google:** NEAR Auth (Google, Apple, email or passkey). The game creates
-   `<name>.minear.testnet` for the player. Its full key stays in NEAR's MPC network. No seed phrase.
-2. **Connect a NEAR wallet:** the player's own testnet account, through NEAR Connect (Meteor, Intear, Nightly
-   and other wallets).
-3. **Play demo:** no account. Mining works, but nothing is kept.
-
-### No popups while you play
-
-Each way in ends with a **game key** in the browser: a function-call key for `items.minear.testnet` only, with no
-deposit. It can make game moves. It cannot move NEAR or gear. With a wallet, the wallet approves this key one time
-per browser.
-
-### Who pays the gas
-
-- The relayer pays the gas for accounts that hold less than 0.15 NEAR. The player needs no NEAR.
-- An account with 0.15 NEAR or more pays its own gas. Its game key signs, so the player still sees no popup.
-- Limits on free gas: 240 actions per account per UTC day, and 24,000 actions per UTC day for all players together.
-  When a limit is used up, free gas comes back at 00:00 UTC.
-- The relayer refuses repeated and too-fast requests (bot speed).
-
-### A mining trip
-
-When a signed-in player finishes a trip, the game calls `save_trip` at once. There is no claim step. In one call the
-contract:
-
-1. mints the materials of the trip to the player (with an hourly cap per material and a 30 s cooldown),
-2. records the trip in the player's record,
-3. puts the player on the Depth and Mined boards when the trip is good enough.
-
-The lobby shows the live data: the latest trips, the Depth board, the supply of each material and the market.
-
-The game reports the trip depth for now. The contract checks only that the depth is inside the world.
-
-### Storage
-
-On NEAR each stored byte locks 0.00001 NEAR in the contract. The server checks the balances after relayed calls (at
-most once every 10 minutes, with no timer) and tops up the contract and the relayer from `minear.testnet`.
-
-## Run it on your computer
-
-You need Node.js and [bun](https://bun.sh). To build the contract you also need Rust and `cargo-near`.
-
-```bash
-npm install
-```
-
-The game on the real NEAR testnet (the MINEAR server on 127.0.0.1:8787 and the page on http://localhost:3000):
+To test Google sign-in on your computer, run the game against NEAR testnet and open it as
+`http://localhost:3000`. NEAR Auth's shared testnet login allows only that address.
 
 ```bash
 npm run dev:testnet
 ```
 
-Open the page as `http://localhost:3000`, not `http://127.0.0.1:3000`. NEAR Auth's shared testnet login allows only
-that address, so Google sign-in does not work on any other address. A NEAR wallet works on any address.
+<img src="wiki/media/signin-localhost-3000.png" alt="The sign-in card on http://localhost:3000" width="720">
 
-The server needs the keys of the game accounts in `server/.keys/testnet/`. They are not in this repository. To make
-your own deployment under a new root account (created from the testnet faucet):
+| Button | What it does |
+| - | - |
+| Continue with Google | NEAR Auth on NEAR testnet. The game creates `<name>.minear.testnet`. Keeps what you mine. |
+| Connect a NEAR wallet | Your own testnet account. The wallet approves one game key for each browser. |
+| Play demo | No account. Mining works, but nothing is kept. |
+| Demo cheat | Dev runs only. The local testnet with cheats on. Off until `npm run dev:local` runs. |
+
+## Demo limits
+
+| Feature | In this demo | Full game |
+| - | - | - |
+| Depth | The world stops at Heartstone, about 1,100 m. The depth bar shows a DEMO tag. | Goes deeper |
+| The core | The story's Inner Core at 100,000 m is in the intro film only | A place to reach |
+| Boss souls | Kept in the save game, not on chain | Tokens |
+| Gear | Eight pieces in four metals from the Forge, on chain | More pieces and sources |
+| Trip depth | The game reports it. The contract checks only that it is inside the world. | A server confirms it |
+| Chain | NEAR testnet, and a local testnet with cheats | NEAR mainnet |
+| Supply | Open Supply | Capped Supply is a proposal |
+
+## How to run
 
 ```bash
-bun server/tools/setup.ts --root <your-name>.testnet
+npm install
 ```
 
-A full local NEAR chain on this computer (chain 127.0.0.1:3030, server 127.0.0.1:8788, page
-http://127.0.0.1:5187/?mode=cheat, bot players for 10 minutes). It needs the `near-sandbox` binary in
-`server/.sandbox/bin/`; the tool tells you the download command when the binary is missing.
+The game on NEAR testnet, page on http://localhost:3000:
+
+```bash
+npm run dev:testnet
+```
+
+The local testnet with the cheat system, page on http://127.0.0.1:5187/?mode=cheat:
 
 ```bash
 npm run dev:local
 ```
 
-The contract tests and the contract build:
+Read more: **[How to run: tools, the local testnet, cheats, contract tests, settings and folders](wiki/run.md)**.
 
-```bash
-npm run contract:test
-```
+## Trailer
 
-```bash
-npm run contract:build
-```
+[![MINEAR intro film](wiki/media/trailer.gif)](wiki/media/trailer.mp4)
 
-The end-to-end check against a running server (it creates a test player and plays one trip):
-
-```bash
-npm run near:smoke
-```
-
-Settings: every value has a default. To change one, copy `.env.example` to `.env.local`.
-
-## Folders
-
-| Folder | What it has |
-| - | - |
-| `src/` | The game (Three.js, TypeScript, Vite) and its NEAR client (`src/near/`) |
-| `server/src/` | The MINEAR server: gas relayer, account setup, merchant quotes |
-| `server/tools/` | Setup, smoke test, bots, the local chain and the testnet dev run |
-| `contracts/items/` | The game contract (Rust, near-sdk) |
-| `public/` | 3D models and images |
+The intro film, made with the game engine. Click the image for the video with sound
+([`wiki/media/trailer.mp4`](wiki/media/trailer.mp4)).
 
 ## License
 
