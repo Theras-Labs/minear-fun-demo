@@ -31,6 +31,7 @@ const RARITY_TIER: Record<string, number> = { common: 1, uncommon: 2, rare: 3, e
 
 /** [game item id, hourly save cap]. Caps sit well above what a good miner digs in an hour. */
 const ORE_CAPS: [string, number][] = [
+  [`stone`, 600], // MINEAR (user, 2026-11-15): the first material, from common rock
   [`copper`, 400],
   [`iron`, 300],
   [`gold`, 150],
@@ -57,7 +58,8 @@ const def = (item: string, kind: 'ore' | 'gem', cap: number, i: number): TokenDe
     item,
     name: it.name,
     kind,
-    tier: kind === `ore` ? i + 1 : RARITY_TIER[it.rarity],
+    // stone (index 0) shares tier 1 with copper, so copper..mythril keep their tiers 1..4 on chain
+    tier: kind === `ore` ? Math.max(1, i) : RARITY_TIER[it.rarity],
     base: it.value,
     capPerHour: cap,
     color: it.color,

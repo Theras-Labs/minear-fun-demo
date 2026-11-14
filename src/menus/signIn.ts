@@ -91,7 +91,7 @@ function render(): void {
     : `<button class="si-google" data-si="google" type="button" ${busy ? `disabled` : ``}>${GOOGLE}<span>${busy && !walletBusy ? `Waiting for Google…` : `Continue with Google`}</span></button>
        <p class="soft">Also Apple, email or a passkey in the same window. No seed phrase, no wallet popup, no gas: the game pays the gas.</p>
        <p class="si-or">or</p>
-       <button class="si-wallet" data-si="wallet" type="button" ${busy ? `disabled` : ``}>${walletBusy ? `Waiting for your wallet…` : `Connect a NEAR wallet`}</button>
+       <button class="si-wallet" data-si="wallet" type="button" ${busy ? `disabled` : ``}>${NEAR}<span>${walletBusy ? `Waiting for your wallet…` : `Connect a NEAR wallet`}</span></button>
        <p class="soft">Your own NEAR testnet account. The wallet approves one game key per browser (it can only make game moves); after that, no popups. No NEAR in the account: the game pays the gas.</p>`;
   sheet.innerHTML = `<header><h2>Sign in</h2><button class="si-x" data-si="close" type="button" title="Close (Esc)" ${busy ? `disabled` : ``}>✕</button></header>
     ${reason}${body}${note}
@@ -193,3 +193,7 @@ const GOOGLE = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#ffc107"
 
 /** The Google mark, for other buttons (the lobby). */
 export const GOOGLE_ICON = GOOGLE;
+
+/** The NEAR mark (white on the dark wallet buttons). */
+const NEAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.9 2.1 13.6 8.4c-.3.4.3.9.6.6l4.3-3.7c.1-.1.3 0 .3.1v11.4c0 .1-.2.2-.2.1L5.8 2.6A1.8 1.8 0 0 0 4.5 2h-.4A1.9 1.9 0 0 0 2.2 3.9v16.2C2.2 21.1 3 22 4.1 22c.7 0 1.3-.3 1.6-.9l4.3-6.3c.3-.4-.3-.9-.6-.6l-4.3 3.7c-.1.1-.3 0-.3-.1V6.4c0-.1.2-.2.2-.1l12.8 14.5c.4.5.9.7 1.3.7h.4c1 0 1.9-.9 1.9-1.9V3.9C21.4 2.9 20.6 2 19.5 2c-.7 0-1.3.3-1.6.9z"/></svg>`;
+export const NEAR_ICON = NEAR;

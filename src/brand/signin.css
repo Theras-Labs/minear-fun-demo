@@ -23,6 +23,11 @@
   color: var(--ink, #3a281c);
   display: grid;
   gap: 10px;
+  /* a long account id (a 64-character wallet id) wraps instead of pushing the sheet wider */
+  overflow-wrap: anywhere;
+}
+#signin .si-sheet > * {
+  min-width: 0;
 }
 #signin header {
   display: flex;
@@ -73,12 +78,21 @@
   flex: none;
 }
 #signin .si-wallet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
   padding: 9px 16px;
   font-size: 16px;
   color: #f4f7ff;
   text-shadow: none;
   background: #1d1f2b;
+}
+#signin .si-wallet svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
 }
 #signin .si-or {
   text-align: center;

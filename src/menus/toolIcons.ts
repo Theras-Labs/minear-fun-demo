@@ -8,8 +8,8 @@
 const INK = `#3a281c`;
 const S = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
 
-/** MINEAR Forge metals: the colour of an Iron, Gold or Mythril piece (Forge tiles, forged gear icons). */
-export const METAL_DYE: Record<string, number> = { copper: 0xd9773b, iron: 0xa7b1bf, gold: 0xf5b833, mythril: 0x47c9e0 };
+/** MINEAR Forge metals: the colour of a Stone, Iron, Gold or Mythril piece (Forge tiles, forged gear icons). */
+export const METAL_DYE: Record<string, number> = { stone: 0x8f877b, copper: 0xd9773b, iron: 0xa7b1bf, gold: 0xf5b833, mythril: 0x47c9e0 };
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, `0`)}`;
 /** A darker shade of a #rrggbb colour (k 0..1). */

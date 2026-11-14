@@ -292,7 +292,8 @@ export class HaulShow {
     const chain = vault.chainName;
     let body: string;
     if (!this.haul.kept) {
-      if (vault.signedIn) body = `<p class="hs-cnote">Demo trip: nothing from it was kept. From now on, what you mine is saved on ${chain}.</p>`;
+      if (this.haul.practice) body = `<p class="hs-cnote">Tutorial practice: nothing from this trip is kept.</p>`;
+      else if (vault.signedIn) body = `<p class="hs-cnote">Demo trip: nothing from it was kept. From now on, what you mine is saved on ${chain}.</p>`;
       else
         body = CHEAT
           ? `<p class="hs-cnote">Nothing from this trip is kept: there is no local testnet account.</p>

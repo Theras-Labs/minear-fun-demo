@@ -69,6 +69,31 @@ export const near = {
     return accountId;
   },
 
+  /**
+   * Opens the wallet picker and, in the same wallet window, asks it to sign a free NEP-413 message (no
+   * transaction). One window only: a second window opened later would not come from the player's click, and
+   * browsers block it. Returns the account and the signed message (null when the wallet signed in without it).
+   */
+  async connectAndSign(params: { message: string; recipient: string; nonce: Uint8Array }): Promise<{
+    wallet: NearWalletBase;
+    accountId: string;
+    signed: { accountId: string; publicKey: string; signature: string } | null;
+  }> {
+    const c = await load();
+    let signed: { accountId: string; publicKey: string; signature: string } | null = null;
+    c.once(`wallet:signInAndSignMessage`, (e) => {
+      const a = e.accounts[0];
+      if (a?.signedMessage) signed = a.signedMessage;
+    });
+    const wallet = await c.connect({ signMessageParams: params });
+    const accounts = await wallet.getAccounts({ network: NEAR_NETWORK });
+    const id = accounts[0]?.accountId;
+    if (!id) throw new Error(`The wallet did not share a NEAR ${NEAR_NETWORK} account`);
+    for (let i = 0; i < 20 && !signed; i++) await new Promise((r) => setTimeout(r, 100));
+    set(id);
+    return { wallet, accountId: id, signed };
+  },
+
   /** Opens the wallet picker and returns the wallet and its account. Throws when the player closes it. */
   async connectWallet(): Promise<{ wallet: NearWalletBase; accountId: string }> {
     const wallet = await (await load()).connect();

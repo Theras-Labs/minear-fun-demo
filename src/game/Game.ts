@@ -91,7 +91,7 @@ import { CHEAT } from './entry';
 import { vault } from '../economy/vault';
 import { session } from '../near/session';
 import { toolMul, toolOf } from './digTools';
-import { ORE_IDS, TRIP_GIVES_GEAR } from '../base/run';
+import { MATERIAL_IDS, TRIP_GIVES_GEAR } from '../base/run';
 import { CheatPanel } from '../ui/cheatPanel';
 import { onStatsChanged as economyStatsChanged } from '../menus/economy';
 import { KrNpc } from '../npc/krNpc';
@@ -481,7 +481,7 @@ export class Game {
         goLair: (b) => this.goLair(b),
         // Stock up: ores and gems minted on chain on the local testnet; Capsule Coins to the save
         stockUp: (k) => {
-          const plan = stockPlan(k, ORE_IDS, GEM_IDS);
+          const plan = stockPlan(k, MATERIAL_IDS, GEM_IDS);
           const refresh = () => {
             this.inv?.refresh();
             if (this.menu?.open) this.menu.refresh();
@@ -685,6 +685,7 @@ export class Game {
       closeSheet: () => closeMenu(this),
       goHome: () => goHome(this),
       atBase: () => this.inHaven(this.player.pos),
+      onForged: (grade) => this.tutorial.forged(grade),
     });
     // MINEAR: the vault keeps the save's gear in step with the player's gear NFTs (src/economy/vault.ts)
     vault.bindState(this.state);
@@ -1354,6 +1355,16 @@ export class Game {
     if (this.shatter?.open) this.shatter.hide();
     if (this.inv?.open) this.inv.hide();
   }
+  /** MINEAR: the tutorial's `finish` step is on: Finish trip and worn-out claws end its trip (backToBase.ts). */
+  get tutorialTrip() {
+    return this.sandbox && this.tutorial?.step === 'finish';
+  }
+  /** MINEAR: ends the tutorial sandbox with its trip's finds; a first tutorial keeps them (src/tutorial/krTutorial.ts). */
+  endTutorialTrip(took: Record<string, number>) {
+    const keep = this.tutorial.first;
+    endSandbox(this, 'done', keep ? { ...took } : null);
+    return keep;
+  }
   setHaul(h: Haul) {
     this.baseDesk.haul = h;
   }
@@ -1919,13 +1930,14 @@ export class Game {
     // MINEAR: unlimited jetpack fuel (cheat), this expedition's depth, and the base sites' status
     if (cheats.jet) p.fuel = this.player.stats.fuelMax;
     const run = this.state.run;
-    if (run && this.started && !this.sandbox && depth > run.deep) run.deep = depth;
+    // MINEAR: the tutorial trip counts too (its trip log is the sandbox's own, src/tutorial/krTutorial.ts)
+    if (run && this.started && depth > run.deep) run.deep = depth;
     this.siteT -= dt;
     if (this.siteT <= 0) {
       this.siteT = 0.5;
       this.hub.setSiteStatus(this.unlockView());
       const hb = document.getElementById('homebtn');
-      if (hb) hb.hidden = !(this.started && !this.sandbox);
+      if (hb) hb.hidden = !(this.started && (!this.sandbox || this.tutorialTrip));
     }
   }
 
@@ -2279,7 +2291,8 @@ export class Game {
     this.world.remeshNear(c, drill.radius + 3);
     this.hasDug = true;
     const info = MATERIALS[r.mat] ?? MATERIALS[Mat.Stone];
-    if (r.touched > 0 && !r.tooHard) this.claws.use(info.hardness);
+    // MINEAR: the tutorial's lessons do not wear the claws (only its `finish` step, the first real trip, does)
+    if (r.touched > 0 && !r.tooHard && !this.tutorial.noWear) this.claws.use(info.hardness);
     if (worn && r.touched > 0) {
       this.hardHintT = 2;
       this.hintOverride = 'Your claws are worn out! Go up to the surface to rest them.';

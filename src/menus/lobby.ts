@@ -21,7 +21,7 @@
 import { CHEAT, DEV_LOCAL, ENTRY, clearEntry, localChainUp, modeUrl } from '../game/entry';
 import { nearAuthPageFix, preloadNearAuth } from '../near/nearAuth';
 import { session } from '../near/session';
-import { GOOGLE_ICON, openSignIn } from './signIn';
+import { GOOGLE_ICON, NEAR_ICON, openSignIn } from './signIn';
 import type { Game } from '../game/Game';
 import { DEPTH_LAYERS } from '../ui/depthBar';
 import { MATERIALS } from '../world/materials';
@@ -101,6 +101,8 @@ export function openLobby(game: Game): void {
   const note = board.querySelector<HTMLElement>(`.lnote`)!;
   let tab: TabId = `trips`;
   let busy = false;
+  /** A line under the buttons for a moment: the wallet's steps, a soft Google notice, or an error. */
+  let notice: { text: string; err?: boolean } | null = null;
   // the trip log: your own saved trips and the sample trips, newest first; a new sample trip arrives every
   // few seconds while the lobby is open (no network, no timers after the game starts)
   let trips: TripRow[] = [...loadTrips(), ...initialTrips()].sort((a, b) => b.at - a.at).slice(0, 40);
@@ -143,15 +145,16 @@ export function openLobby(game: Game): void {
     login.innerHTML = CHEAT
       ? `<span class="gi" aria-hidden="true">${GOOGLE_ICON}</span><span class="gtx">${label(`Continue with Google`, `NEAR Auth · switches to NEAR testnet`)}</span>`
       : id
-        ? `<span class="gtx">${label(`Play as ${esc(shortAccount(id))}`, `NEAR testnet · each trip is saved on chain`)}</span>`
-        : `<span class="gi" aria-hidden="true">${GOOGLE_ICON}</span><span class="gtx">${label(
-            `Continue with Google`,
-            authFix ? `works only at ${authFix.replace(/^https?:\/\//, ``)}` : `NEAR Auth on NEAR testnet · keeps what you mine`,
-          )}</span>`;
+        ? `<span class="gtx">${label(`Play as ${esc(shortAccount(id).replace(`.${session.deploy.root}`, ``))}`, `NEAR testnet · each trip is saved on chain`)}</span>`
+        : `<span class="gi" aria-hidden="true">${GOOGLE_ICON}</span><span class="gtx">${
+            authFix ? `<span class="et">Continue with Google</span>` : label(`Continue with Google`, `NEAR Auth on NEAR testnet · keeps what you mine`)
+          }</span>`;
     // 1b. Connect a NEAR wallet: the player's own testnet account (hidden once signed in: Play as <account>)
     walletBtn.hidden = !!id && !CHEAT;
     walletBtn.disabled = busy;
-    walletBtn.innerHTML = label(`Connect a NEAR wallet`, CHEAT ? `switches to NEAR testnet` : `your own testnet account · no popups while you play`);
+    walletBtn.innerHTML = `<span class="gi" aria-hidden="true">${NEAR_ICON}</span><span class="gtx">${
+      CHEAT ? label(`Connect a NEAR wallet`, `switches to NEAR testnet`) : `<span class="et">${busy ? `Waiting for your wallet…` : `Connect a NEAR wallet`}</span>`
+    }</span>`;
     // 2. Play demo: no account, nothing kept
     play.disabled = busy;
     play.innerHTML = label(`Play demo`, CHEAT ? `no account · switches to NEAR testnet` : `no account · nothing you mine is kept`);
@@ -178,11 +181,13 @@ export function openLobby(game: Game): void {
           ? `This page runs on the local testnet: <b>${esc(shortAccount(id))}</b>. Cheats on.`
           : `This page runs on the local testnet. Cheats on. Your account is made when you press Play.`;
     else
-      who.innerHTML = id
+      who.innerHTML = notice
+        ? `<span class="${notice.err ? `err` : `note`}">${esc(notice.text)}</span>`
+        : id
         ? `Signed in on NEAR ${esc(session.network)}: <b>${esc(shortAccount(id))}</b> · <button type="button" class="link out">Sign out</button>`
         : session.guest
           ? `Demo on this page: nothing you mine is kept.`
-          : `Sign in with NEAR to keep what you mine and forge with it. Demo: you mine as <b>${esc(guestName())}</b>.`;
+          : `Sign in with NEAR to keep what you mine and forge with it.`;
     who.querySelector<HTMLButtonElement>(`.out`)?.addEventListener(`click`, () => {
       session.signOut();
       renderEntry();
@@ -392,13 +397,39 @@ export function openLobby(game: Game): void {
   login.onclick = () => {
     if (CHEAT) return location.assign(modeUrl(false, `google`));
     if (session.player) return game.start();
+    if (authFix) {
+      // NEAR's shared testnet sign-in client returns only to localhost:3000 (minear-r3f/src/near/nearAuth.ts)
+      notice = { text: `Hi! Google sign-in works only at localhost:3000 for now. We are waiting for NEAR Auth to confirm this site. You can connect a NEAR wallet or play the demo meanwhile.` };
+      return renderEntry();
+    }
     openSignIn({ start: true });
   };
-  // NEAR wallet: NEAR Connect's picker opens in the page; the sheet shows the game-key step and errors
+  // NEAR wallet: NEAR Connect's picker opens at once (no sign-in sheet); its steps and errors show under the buttons
   walletBtn.onclick = () => {
     if (CHEAT) return location.assign(modeUrl(false, `wallet`));
     if (session.player) return game.start();
-    openSignIn({ wallet: true });
+    if (busy) return;
+    busy = true;
+    notice = null;
+    renderEntry();
+    session
+      .wallet((text) => {
+        notice = { text };
+        renderEntry();
+      })
+      .then(
+        () => {
+          notice = null;
+        },
+        (e) => {
+          const text = e instanceof Error ? e.message : String(e);
+          notice = /picker was closed/.test(text) ? null : { text, err: true };
+        },
+      )
+      .finally(() => {
+        busy = false;
+        renderEntry();
+      });
   };
   play.onclick = () => {
     if (CHEAT) return location.assign(modeUrl(false, `demo`));

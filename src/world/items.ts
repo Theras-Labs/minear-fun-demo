@@ -80,6 +80,17 @@ export const ITEMS = { // K (33023)
     rarity: `rare`,
     kind: `ore`,
   },
+  // MINEAR (user, 2026-11-15): stone is the first material. Common rock gives it (MaterialDef.stone in
+  // src/world/materials.ts), and the Forge makes the first gear from it (Stone forging, src/economy/forgeRules.ts).
+  stone: {
+    id: `stone`,
+    name: `Stone`,
+    value: 1,
+    color: 10129796,
+    stack: 1,
+    rarity: `common`,
+    kind: `ore`,
+  },
   quartz: {
     id: `quartz`,
     name: `Quartz`,

@@ -301,7 +301,7 @@ export function collect(h: PickupHost, e: string, t: THREE.Vector3, n = 1): numb
     : (a.kind === `ore`
         ? (h.audio.pickup(),
           h.ui.findToast(`ore:${e}`, h.ui.icons.lootHtml(e), a.name, `to the ore bin`, `#${a.color.toString(16).padStart(6, `0`)}`),
-          h.goals?.event(`ore`),
+          e !== `stone` && h.goals?.event(`ore`), // MINEAR: stone is common rock, not an ore vein
           h.tripOre?.(e, i))
         : a.kind === `supply`
           ? (h.audio.pickup(),

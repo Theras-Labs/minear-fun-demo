@@ -42,6 +42,8 @@ export interface Haul {
   goalsDone: number;
   /** False for a demo trip (no account): nothing of it is kept. */
   kept: boolean;
+  /** MINEAR: a tutorial replay's practice trip: nothing of it is kept. */
+  practice?: boolean;
 }
 
 /** Every gear uid the player holds (worn, bag, storage chest). */
@@ -134,12 +136,17 @@ export interface HomeHost {
   showHaul(h: Haul, why?: string): void;
   /** MINEAR: the trip's save on chain finished (refresh the HUD and the bag). */
   afterSave?(): void;
+  /** MINEAR: the tutorial's `finish` step is on: its trip may end (Finish trip, or worn-out claws). */
+  readonly tutorialTrip?: boolean;
+  /** MINEAR: ends the tutorial sandbox with what its trip found; true when a first tutorial keeps it. */
+  endTutorialTrip?(took: Record<string, number>): boolean;
   ui: { banner(title: string, sub: string, color: string): void };
 }
 
-/** Finish mining trip may start now (not in the tutorial, not knocked out, not while the land loads in). */
+/** Finish mining trip may start now (not in the tutorial before its `finish` step, not knocked out, not while the
+ *  land loads in). */
 export function canGoHome(g: HomeHost): boolean {
-  return g.started && !g.sandbox && !g.combat.ko && !g.returning && !g.player.lifting;
+  return g.started && (!g.sandbox || !!g.tutorialTrip) && !g.combat.ko && !g.returning && !g.player.lifting;
 }
 
 /** Opens the confirm sheet. */
@@ -160,6 +167,12 @@ export function goHome(g: HomeHost, why?: string): void {
   g.arc = null;
   g.ult.stop();
   g.player.stopLift();
+  // MINEAR: the tutorial's trip: the sandbox ends first (the world and the save are put back). A first tutorial
+  // keeps what the trip found; a replay keeps nothing.
+  if (g.sandbox && g.endTutorialTrip && !g.endTutorialTrip(s.run?.took ?? {})) {
+    haul.kept = false;
+    haul.practice = true;
+  }
   g.spawnAtHub();
   g.liftWarp();
 
@@ -178,8 +191,9 @@ export function goHome(g: HomeHost, why?: string): void {
   g.items.clear();
 
   // pay the trip bonus, keep the damage record, start the next trip. Demo: the result is not kept.
+  // (a tutorial replay drops nothing: the save it put back holds the player's real materials)
   if (haul.kept) s.capsules += haul.capsules;
-  else dropAll(s);
+  else if (!haul.practice) dropAll(s);
   s.bestDmg = Math.max(s.bestDmg, haul.dmg);
   s.where = null;
   s.run = startRun(s);
@@ -190,7 +204,7 @@ export function goHome(g: HomeHost, why?: string): void {
 
   // the lobby's Trips log keeps this trip (src/menus/lobbyData.ts)
   const items = [...haul.gems, ...haul.ores, ...haul.other].reduce((a, [, n]) => a + n, 0);
-  if (haul.deep > 0 || items > 0)
+  if (!haul.practice && (haul.deep > 0 || items > 0))
     recordTrip({
       name: playerName(),
       deep: haul.deep,

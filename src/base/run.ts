@@ -11,10 +11,13 @@
 export const TRIP_GIVES_GEAR = false;
 export const TRIP_GIVES_COINS = false;
 
-/** Ore ids from the cheapest up (the Refinery smelts each into the next). */
+/** Ore ids from the cheapest up (the Refinery smelts each into the next; the skill tree prices by this order). */
 export const ORE_IDS = [`copper`, `iron`, `gold`, `mythril`] as const;
-export type OreId = (typeof ORE_IDS)[number];
-export const isOreId = (v: unknown): v is OreId => (ORE_IDS as readonly unknown[]).includes(v);
+/** MINEAR (user, 2026-11-15): every material a trip brings home and the Forge uses, cheapest first: stone (from
+ *  common rock), then the ores. Stone is not an ore of the Refinery or the skill tree, so ORE_IDS leaves it out. */
+export const MATERIAL_IDS = [`stone`, ...ORE_IDS] as const;
+export type OreId = (typeof MATERIAL_IDS)[number];
+export const isOreId = (v: unknown): v is OreId => (MATERIAL_IDS as readonly unknown[]).includes(v);
 
 export interface RunLog {
   /** Date.now() when the expedition started. */

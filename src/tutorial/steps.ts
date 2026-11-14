@@ -3,12 +3,19 @@
 import * as THREE from 'three';
 import { LIFT_POINT } from '../world/constants';
 import { touchIcon } from '../ui/touch';
+import { FORGE_GRADES } from '../economy/forgeRules';
 
-/** A tutorial step name (sandbox steps, then the after steps `spring` and `ready`). */
-export type TutorialStep = 'move' | 'fly' | 'dash' | 'dig' | 'gem' | 'up' | 'shoot' | 'drill' | 'slam' | 'home' | 'spring' | 'ready';
+/** Stone one Stone forging takes (the `forge` step's hint). */
+const STONE_MAKE = FORGE_GRADES.find((g) => g.id === `stone`)?.n ?? 10;
 
-/** The sandbox steps in order. */
-export const SANDBOX_STEPS: TutorialStep[] = [`move`, `fly`, `dash`, `dig`, `gem`, `up`, `shoot`, `drill`, `slam`, `home`]; // mN (59932)
+/** A tutorial step name: the sandbox steps, then the after steps (`quota`, `forge`, `ready`; `spring` only from
+ *  the HUD's Wellspring hint). */
+export type TutorialStep = 'move' | 'fly' | 'dash' | 'dig' | 'gem' | 'finish' | 'quota' | 'forge' | 'spring' | 'ready';
+
+/** The sandbox steps in order. MINEAR (user, 2026-11-15): after the gem the first trip ends with Finish trip, or
+ *  when the claws wear out. The old steps after it (back up to the surface, shoot, burrow into a foe, Burrow Slam,
+ *  ride the light home) are gone. */
+export const SANDBOX_STEPS: TutorialStep[] = [`move`, `fly`, `dash`, `dig`, `gem`, `finish`]; // mN (59932)
 
 /** A key cap. */
 export const kbd = (e: string): string => `<kbd>${e}</kbd>`; // hN (59933)
@@ -73,36 +80,32 @@ export const STEP_TEXT: Record<TutorialStep, StepText> = { // yN (59938)
       12,
     ],
   },
-  up: {
-    say: `Back up to the surface`,
-    keys: `Hold ${kbd(`Space`)}`,
-    thumbs: `Hold ${touchIcon(`jump`)}`,
-    buttons: [`jump`],
-  },
-  shoot: {
-    say: `One of the Lost! Shoot it`,
-    keys: `Hold ${mouseIcon(`r`)}`,
-    thumbs: `Hold ${touchIcon(`shoot`)}`,
-    buttons: [`shoot`],
-  },
-  drill: {
-    say: `Now burrow into one`,
-    keys: `Get close, hold ${mouseIcon(`l`)}`,
-    thumbs: `Get close, hold ${touchIcon(`drill`)}`,
+  finish: {
+    say: `Finish trip, or keep mining until your claws wear out`,
+    keys: `${kbd(`H`)} finish trip ${SEP} ${mouseIcon(`l`)} keep mining`,
+    thumbs: `Tap finish trip ${SEP} hold ${touchIcon(`drill`)} to keep mining`,
     buttons: [`drill`],
+    nudge: [
+      `Mining wears your claws down. When they wear out, the trip ends`,
+      `Mining wears your claws down. When they wear out, the trip ends`,
+      12,
+    ],
   },
-  slam: {
-    say: `Burrow Slam!`,
-    keys: `${kbd(`E`)}, then click`,
-    thumbs: `${touchIcon(`ult`)}, then ${touchIcon(`drill`)}`,
-    buttons: [`ult`],
-    nudge: [`Press E, then click the ground by them`, `Tap the slam, then the burrow button`, 10],
-  },
-  home: {
-    say: `Ride the light up to the haven`,
+  quota: {
+    say: `Free trips: the game pays your gas`,
     keys: ``,
     thumbs: ``,
-    nudge: [`The beam under the island`, `The beam under the island`, 14],
+  },
+  forge: {
+    say: `Make Stone Claws at the Forge`,
+    keys: `${kbd(`E`)} at the Forge ${SEP} Claws ${SEP} Stone ${SEP} Make`,
+    thumbs: `${touchIcon(`use`)} at the Forge ${SEP} Claws ${SEP} Stone ${SEP} Make`,
+    buttons: [`use`],
+    nudge: [
+      `Stone forging takes ${STONE_MAKE} stone. Short? Mine more on your next trip`,
+      `Stone forging takes ${STONE_MAKE} stone. Short? Mine more on your next trip`,
+      25,
+    ],
   },
   spring: {
     say: `Send your gem into the Wellspring`,
@@ -112,8 +115,8 @@ export const STEP_TEXT: Record<TutorialStep, StepText> = { // yN (59938)
   },
   ready: {
     say: `You're ready`,
-    keys: `Gems are NEAR. Mine them.`,
-    thumbs: `Gems are NEAR. Mine them.`,
+    keys: `Better claws last longer. Mine deeper, forge better gear.`,
+    thumbs: `Better claws last longer. Mine deeper, forge better gear.`,
   },
 };
 

@@ -63,7 +63,8 @@ export interface GoalDef {
 }
 
 export const GOALS: GoalDef[] = [ // GA (53385)
-  { text: `Hop off the island to the mine site`, on: `leave`, need: 1, reward: { items: { copper: 5 } } },
+  // MINEAR (2026-11-15): stone too, so a first tutorial (it pays the first four requests) can always make Stone Claws
+  { text: `Hop off the island to the mine site`, on: `leave`, need: 1, reward: { items: { stone: 10, copper: 5 } } },
   {
     text: `Mine an ore vein (copper, iron, gold)`,
     on: `ore`,

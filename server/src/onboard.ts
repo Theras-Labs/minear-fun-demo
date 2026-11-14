@@ -6,12 +6,13 @@
 //     game action without a popup. It cannot attach a deposit, so it cannot transfer items away.
 // The new account holds no NEAR: it fits NEP-448's free storage (770 bytes). The relayer pays its gas.
 // Limits: 5 new accounts per IP per hour, and names are first come, first served.
-import { PublicKey, actions } from 'near-api-js';
+import { createHash } from 'node:crypto';
+import { PublicKey, actions, baseDecode } from 'near-api-js';
 import type { Deployment } from '../../src/economy/types';
 import { MERCHANTS } from '../../src/economy/pricing';
 import { rootTx } from './budget';
 import { LOCAL } from './env';
-import { account, errorText, exists } from './near';
+import { account, errorText, exists, provider } from './near';
 
 const PER_IP_HOUR = 5;
 /** What a session key may spend on gas if the player pays their own gas (0.25 NEAR). */
@@ -71,4 +72,128 @@ export async function onboard(
   } catch (e) {
     return { status: 422, body: { ok: false, error: errorText(e) } };
   }
+}
+
+// ---- NEAR wallet players: a MINEAR account linked to the wallet (the user's choice, 2026-11-15) ----
+// The wallet signs one free NEP-413 message during sign-in (no transaction, no NEAR). This proves the wallet holds
+// `publicKey`. The root then creates <name>.<root> with that public key as its full-access key (so the wallet's key
+// owns it) and the browser's game key as its session key. The wallet account itself needs no NEAR and may not even
+// exist on chain yet (a new wallet's 64-character implicit id).
+
+const SIGN_MAX_AGE_MS = 10 * 60_000;
+const usedNonces = new Map<string, number>();
+
+export interface WalletOnboardBody {
+  walletId?: string;
+  publicKey?: string;
+  signature?: string;
+  message?: string;
+  /** base64 of the 32-byte nonce */
+  nonce?: string;
+  recipient?: string;
+  sessionKey?: string;
+}
+
+const u32 = (n: number) => {
+  const b = Buffer.alloc(4);
+  b.writeUInt32LE(n >>> 0);
+  return b;
+};
+const str = (s: string) => {
+  const b = Buffer.from(s, `utf8`);
+  return Buffer.concat([u32(b.length), b]);
+};
+
+/** NEP-413: sha256(borsh(2^31 + 413) || borsh({ message, nonce, recipient, callbackUrl: None })). */
+function nep413Hash(message: string, nonce: Buffer, recipient: string): Uint8Array {
+  const data = Buffer.concat([u32(2 ** 31 + 413), str(message), nonce, str(recipient), Buffer.from([0])]);
+  return new Uint8Array(createHash(`sha256`).update(data).digest());
+}
+
+function sigBytes(s: string): Uint8Array | null {
+  const raw = s.replace(/^ed25519:/, ``);
+  try {
+    const b = Buffer.from(raw, `base64`);
+    if (b.length === 64) return new Uint8Array(b);
+  } catch {
+    /* not base64 */
+  }
+  try {
+    const b = baseDecode(raw);
+    if (b.length === 64) return b;
+  } catch {
+    /* not base58 */
+  }
+  return null;
+}
+
+/** True when `publicKey` is a full-access key of `walletId`, or `walletId` is that key's implicit account. */
+async function walletOwnsKey(walletId: string, pk: PublicKey): Promise<boolean> {
+  if (/^[0-9a-f]{64}$/.test(walletId)) return Buffer.from(pk.data).toString(`hex`) === walletId;
+  try {
+    const k = (await provider.viewAccessKey({ accountId: walletId, publicKey: pk.toString() })) as unknown as { permission?: unknown };
+    return k.permission === `FullAccess` || (typeof k.permission === `object` && k.permission !== null && `FullAccess` in k.permission);
+  } catch {
+    return false;
+  }
+}
+
+/** The MINEAR account names this wallet key already owns (FastNEAR public-key index). */
+async function linkedOf(deploy: Deployment, pk: string): Promise<string[]> {
+  const base = deploy.network === `mainnet` ? `https://api.fastnear.com` : `https://test.api.fastnear.com`;
+  try {
+    const r = await fetch(`${base}/v0/public_key/${pk}`, { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return [];
+    return (((await r.json()) as { account_ids?: string[] }).account_ids ?? []).filter((a) => a.endsWith(`.${deploy.root}`));
+  } catch {
+    return [];
+  }
+}
+
+export async function walletOnboard(deploy: Deployment, body: WalletOnboardBody, ip: string): Promise<{ status: number; body: Record<string, unknown> }> {
+  const walletId = String(body.walletId ?? ``);
+  const message = String(body.message ?? ``);
+  const recipient = String(body.recipient ?? ``);
+  if (!walletId || !message || !recipient || !body.publicKey || !body.signature || !body.nonce || !keyOk(body.sessionKey))
+    return { status: 400, body: { ok: false, error: `walletId, publicKey, signature, message, nonce, recipient and sessionKey are needed` } };
+  // the message the game asked for: "MINEAR sign-in <ISO time>", for this server's game, fresh and used once
+  const m = message.match(/^MINEAR sign-in (\S+)$/);
+  const at = m ? Date.parse(m[1]) : NaN;
+  if (!m || !Number.isFinite(at) || Math.abs(Date.now() - at) > SIGN_MAX_AGE_MS)
+    return { status: 400, body: { ok: false, error: `The signed message is old or not MINEAR's: sign in again` } };
+  if (recipient !== `MINEAR`) return { status: 400, body: { ok: false, error: `The signed message is for another app` } };
+  const nonce = Buffer.from(body.nonce, `base64`);
+  if (nonce.length !== 32) return { status: 400, body: { ok: false, error: `The nonce must be 32 bytes` } };
+  const nk = nonce.toString(`hex`);
+  const now = Date.now();
+  for (const [k, t] of usedNonces) if (now - t > SIGN_MAX_AGE_MS) usedNonces.delete(k);
+  if (usedNonces.has(nk)) return { status: 400, body: { ok: false, error: `This signed message was used already: sign in again` } };
+  let pk: PublicKey;
+  try {
+    pk = PublicKey.fromString(body.publicKey);
+  } catch {
+    return { status: 400, body: { ok: false, error: `Not a NEAR public key` } };
+  }
+  const sig = sigBytes(body.signature);
+  if (!sig || !pk.verify(nep413Hash(message, nonce, recipient), sig))
+    return { status: 401, body: { ok: false, error: `The wallet signature does not match` } };
+  if (!(await walletOwnsKey(walletId, pk))) return { status: 401, body: { ok: false, error: `That key is not a full-access key of ${walletId}` } };
+  usedNonces.set(nk, now);
+
+  const linked = await linkedOf(deploy, pk.toString());
+  if (linked.length) return { status: 409, body: { ok: false, existing: linked[0], error: `This wallet already has ${linked[0]}. Play it in the browser you first signed in on (adding a new browser is not built yet).` } };
+  const pkHex = Buffer.from(pk.data).toString(`hex`);
+  let name: string | null = null;
+  const base = /^[0-9a-f]{64}$/.test(walletId)
+    ? `w-${walletId.slice(0, 8)}`
+    : walletId.split(`.`)[0].toLowerCase().replace(/[^a-z0-9_-]/g, `-`).replace(/^[-_]+|[-_]+$/g, ``).slice(0, 24);
+  for (const n of [base, `w-${base}`.slice(0, 26), `${base}-${pkHex.slice(0, 4)}`, `w-${pkHex.slice(0, 10)}`]) {
+    if (!nameError(n) && !(await exists(`${n}.${deploy.root}`))) {
+      name = n;
+      break;
+    }
+  }
+  if (!name) return { status: 409, body: { ok: false, error: `No free MINEAR name for this wallet` } };
+  const r = await onboard(deploy, { name, fullKey: pk.toString(), sessionKey: body.sessionKey }, ip);
+  return r.status === 200 ? { status: 200, body: { ...r.body, walletId } } : r;
 }

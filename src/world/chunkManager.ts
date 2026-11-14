@@ -432,7 +432,8 @@ export class ChunkManager { // wb (35645)
       else c.nat = null;
     }
   }
-  /** Local dig. Ore voxels removed add ORE_YIELD to a carry per ore id; whole numbers become yields. */
+  /** Local dig. Ore voxels removed add ORE_YIELD to a carry per ore id (common rock: its `stone` rate to the stone
+   *  carry); whole numbers become yields. */
   dig(pos: XYZ, radius: number, strength: number, drillPower: number, fast?: (mat: number) => boolean | number): DigResult {
     const yields: Record<string, number> = {};
     const r = digSphere(
@@ -444,9 +445,11 @@ export class ChunkManager { // wb (35645)
       strength,
       drillPower,
       (mat: number) => {
-        const ore = MATERIALS[mat]?.ore;
+        const def = MATERIALS[mat];
+        // MINEAR: common rock gives stone at its own rate; ore voxels give their ore at ORE_YIELD
+        const ore = def?.ore ?? (def?.stone ? `stone` : undefined);
         if (!ore) return;
-        const carry = (this.oreCarry[ore] ?? Math.random()) + ORE_YIELD;
+        const carry = (this.oreCarry[ore] ?? Math.random()) + (def.ore ? ORE_YIELD : def.stone!);
         const whole = Math.floor(carry);
         this.oreCarry[ore] = carry - whole;
         if (whole) yields[ore] = (yields[ore] ?? 0) + whole;

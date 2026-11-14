@@ -24,6 +24,9 @@ import { rewardText } from '../ui/goalReward';
 import { TutorialCoach, type CoachHost } from './coach';
 import { HavenFlyIn } from './havenFlyIn';
 import { PRACTICE_GEM } from './steps';
+import { tutorialAccount } from './account';
+import { itemDef } from '../world/items';
+import { startRun } from '../base/backToBase';
 
 /** The frozen time of day in the sandbox. */
 export const SANDBOX_TIME = 0.36; // bR (69992)
@@ -115,7 +118,9 @@ export interface TutorialHost extends GoalsHost {
   };
   /** The worm part of ET keeps its own copy of ET.quiet. */
   readonly wormHost?: { quiet: boolean } | null;
-  readonly ult: CoachHost['ult'] & { stop(): void };
+  readonly ult: { leap?: unknown; stop(): void };
+  /** MINEAR: the claws' endurance (src/game/clawEndurance.ts). */
+  readonly claws: { value: number; readonly max: number };
   readonly touch: (NonNullable<CoachHost['touch']> & { fullscreen(): void }) | null;
   /** KR.anyPanel */
   readonly anyPanel: boolean;
@@ -174,9 +179,6 @@ export function makeTutorial(h: TutorialHost): TutorialCoach {
     player: h.player,
     cam: h.cam,
     state: h.state,
-    get ult() {
-      return h.ult;
-    },
     hub: h.hub,
     audio: h.audio,
     sparks: h.sparks,
@@ -195,12 +197,15 @@ export function makeTutorial(h: TutorialHost): TutorialCoach {
     get id() {
       return h.myId ?? ``;
     },
-    summon: (e, t, n) => h.foeHost.summon(e, t, h.simPlayer(), n), // mp.summon (48938), not served
     floor: (e, t, n) => h.world.groundBelow(e, t, n, 40),
     solid: (e, t, n) => h.world.solid(e, t, n),
     grass: (e, t, n, r, i) => h.grass.slam(e, t, n, r, i),
     clear: (e, t, n) => h.decor.clear(e, t, n),
     leave: (e) => endSandbox(h, e),
+    fillClaws: () => {
+      h.claws.value = h.claws.max;
+    },
+    account: tutorialAccount,
   });
   h.settingsPanel && (h.settingsPanel.onTutorial = () => TutorialCoach.again());
   return tutorial;
@@ -288,6 +293,8 @@ export function beginSandbox(h: TutorialHost, e: boolean): void {
     setMonsterSandbox(h, !0),
     (h.combat.floor = Math.max(1, Math.round(h.combat.maxHp * 0.25))),
     (h.sandboxWas = { gems: h.gems.snapshot(), decor: h.decor.snapshot() }),
+    // MINEAR: the tutorial is the first mining trip: a fresh trip log (state.reload puts the saved one back)
+    (h.state.run = startRun(h.state)),
     (h.env.clock.frozen = SANDBOX_TIME),
     h.weather.setMode(`clear`));
   const t = h.tutorial.startAt(h.player.pos);
@@ -300,8 +307,12 @@ export function beginSandbox(h: TutorialHost, e: boolean): void {
     h.intro ? ((h.intro.around = new HavenFlyIn()), (h.intro.then = () => h.tutorial.begin())) : h.tutorial.begin());
 }
 
-/** KR.endSandbox (71188): `done` (the lift) or `skip`. Puts the world and the save back; a first tutorial pays. */
-export function endSandbox(h: TutorialHost, e: 'skip' | 'done'): void {
+/**
+ * KR.endSandbox (71188): `done` (the trip ended) or `skip`. Puts the world and the save back; a first tutorial pays.
+ * MINEAR: `carry` is what the tutorial trip found (Finish trip or worn-out claws, src/base/backToBase.ts goHome).
+ * A first tutorial keeps it (in place of the practice gem it used to give); a replay keeps nothing.
+ */
+export function endSandbox(h: TutorialHost, e: 'skip' | 'done', carry?: Record<string, number> | null): void {
   if (!h.sandbox) return;
   h.sandbox = !1;
   const t = h.tutorial.first && e === `done`;
@@ -323,7 +334,9 @@ export function endSandbox(h: TutorialHost, e: 'skip' | 'done'): void {
     t)
   )
     for (
-      h.state.put(PRACTICE_GEM, 1) || (h.state.crystals[PRACTICE_GEM] = (h.state.crystals.sapphire ?? 0) + 1);
+      carry
+        ? keepCarry(h.state, carry)
+        : h.state.put(PRACTICE_GEM, 1) || (h.state.crystals[PRACTICE_GEM] = (h.state.crystals[PRACTICE_GEM] ?? 0) + 1);
       h.state.goal.i < 4 && h.goals.current;
 
     )
@@ -336,6 +349,17 @@ export function endSandbox(h: TutorialHost, e: 'skip' | 'done'): void {
     /* storage blocked */
   }
   (afterLoad(h), h.applySettings(h.settings), showSkip(!1), /* mp.connect() */ h.tutorial.afterward(e));
+}
+
+/** MINEAR: what a first tutorial trip found goes into the save again after state.reload: gems to the cart (the
+ *  gem store when it is full), everything else (stone, ore, dice) where put() keeps it. */
+function keepCarry(s: PlayerState, carry: Record<string, number>): void {
+  for (const [id, n] of Object.entries(carry)) {
+    if (!(n > 0)) continue;
+    const kind = itemDef(id)?.kind;
+    if (kind === `gem`) giveReward(s, { items: { [id]: n } });
+    else if (kind) s.put(id, n);
+  }
 }
 
 /** KR.afterLoad (71236): after the save was read again. */

@@ -18,7 +18,7 @@ import type { PlayerState } from '../state/playerState';
 import { gearFromChain, gearName, type GearItem } from '../state/gear';
 import { ITEMS } from '../world/items';
 import { CHEAT } from '../game/entry';
-import { GameError } from '../near/play';
+import { GameError, viewCall, type Player } from '../near/play';
 import { session } from '../near/session';
 import { TOKEN_BY_ID, itemOf, tokenName, tokenOf, type TokenId } from './catalog';
 import type { GearToken, PlayerView } from './types';
@@ -107,19 +107,30 @@ export function takeLocal(s: PlayerState, token: TokenId, n: number): void {
   }
 }
 
-/** What a save sends: the materials not on chain yet, within this hour's save caps. */
-export function savePlan(s: PlayerState, v: PlayerView | null): { items: [TokenId, number][]; capped: string[] } {
+/** What a save sends: the materials not on chain yet, within this hour's save caps. `known`: the token ids the
+ *  contract has (its catalog); a material it does not have yet (stone before setup.ts registers it) stays in this
+ *  browser, because one unknown token fails the whole save_trip call. */
+export function savePlan(
+  s: PlayerState,
+  v: PlayerView | null,
+  known?: Set<TokenId> | null,
+): { items: [TokenId, number][]; capped: string[]; unknown: string[] } {
   const hour = v ? Math.floor(v.now_ms / 3_600_000) : 0;
   const done = new Map(v && v.player.hour === hour ? v.player.minted : []);
   const items: [TokenId, number][] = [];
   const capped: string[] = [];
+  const unknown: string[] = [];
   for (const [t, n] of localMaterials(s)) {
+    if (known && !known.has(t)) {
+      unknown.push(tokenName(t));
+      continue;
+    }
     const room = TOKEN_BY_ID[t].capPerHour - (done.get(t) ?? 0);
     const k = Math.min(n, room);
     if (k > 0) items.push([t, k]);
     if (k < n) capped.push(tokenName(t));
   }
-  return { items, capped };
+  return { items, capped, unknown };
 }
 
 // ---- the materials on chain --------------------------------------------------------------------------------
@@ -321,11 +332,17 @@ class Vault {
         const secs = Math.ceil((v.next_save_ms - v.now_ms) / 1000);
         return this.report({ items: [], left: total, why: `The chain takes one save every 30 s. Save again in ${secs} s.`, err: false });
       }
-      const plan = savePlan(s, v);
+      const plan = savePlan(s, v, await this.knownTokens(p, s));
       // a v2 contract records the trip even with no items (a trip that found nothing, or all over the cap)
       const trip = this.chainGear ? this.pendingTrip : null;
+      const notYet = plan.unknown.length ? `${plan.unknown.join(`, `)} cannot go on chain yet. It stays in this browser.` : ``;
       if (!plan.items.length && !trip)
-        return this.report({ items: [], left: total, why: `This hour's limit is reached for ${plan.capped.join(`, `)}. It is saved with a later trip.`, err: false });
+        return this.report({
+          items: [],
+          left: total,
+          why: plan.capped.length ? `This hour's limit is reached for ${plan.capped.join(`, `)}. It is saved with a later trip.` : notYet,
+          err: false,
+        });
       await this.run(() => p.saveTrip(plan.items, trip ?? undefined));
       if (trip) this.pendingTrip = null;
       for (const [t, n] of plan.items) {
@@ -337,7 +354,7 @@ class Vault {
       return this.report({
         items: plan.items,
         left,
-        why: plan.capped.length ? `Over this hour's limit: ${plan.capped.join(`, `)}. It is saved with a later trip.` : undefined,
+        why: plan.capped.length ? `Over this hour's limit: ${plan.capped.join(`, `)}. It is saved with a later trip.` : notYet || undefined,
         err: false,
       });
     } catch (e) {
@@ -346,6 +363,23 @@ class Vault {
       this.saving = false;
       this.emit();
       void this.refresh();
+    }
+  }
+
+  /** The token ids the contract has registered (its `catalog` view), per signed-in player. Read once, and again
+   *  at most every 10 minutes while the save holds a material the chain did not have (one view call, made only
+   *  by a save). Null when the read fails (the save then sends everything, as before). */
+  private known: { who: Player; at: number; ids: Set<TokenId> } | null = null;
+  private async knownTokens(p: Player, s: PlayerState): Promise<Set<TokenId> | null> {
+    const k = this.known;
+    const fresh = k && k.who === p && ([...localMaterials(s).keys()].every((t) => k.ids.has(t)) || Date.now() - k.at < 6e5);
+    if (fresh) return k.ids;
+    try {
+      const c = await viewCall<{ materials: { token_id: TokenId }[] }>(p.deploy, `catalog`);
+      this.known = { who: p, at: Date.now(), ids: new Set(c.materials.map((m) => m.token_id)) };
+      return this.known.ids;
+    } catch {
+      return k && k.who === p ? k.ids : null;
     }
   }
 

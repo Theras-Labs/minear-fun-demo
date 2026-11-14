@@ -26,7 +26,7 @@ import {
   type GearSlot,
 } from './gear';
 import { GOALS } from './goals';
-import { ORE_IDS, readRun, type RunLog } from '../base/run';
+import { MATERIAL_IDS, readRun, type RunLog } from '../base/run';
 import { readTree, treeStatPoints } from './skillTree';
 import { beltSlots } from './belt';
 
@@ -220,7 +220,8 @@ export class PlayerState { // Fj (54340)
   deepest = 0;
   /** MINEAR: the most damage dealt in one mining trip (the trip summary's record). */
   bestDmg = 0;
-  /** MINEAR: claw tier (CLAW_TIERS in src/game/clawEndurance.ts) and endurance left (-1 = full). */
+  /** MINEAR: endurance left (-1 = full). clawTier is kept for old saves only: the worn Claws piece sets the tier now
+   *  (clawTierOf in src/game/clawEndurance.ts). */
   clawTier = 0;
   clawEndurance = -1;
   earned = 0;
@@ -941,7 +942,7 @@ export class PlayerState { // Fj (54340)
         (this.seen = t.seen ?? {}));
       // MINEAR base: ore bin, Capsule Coins, expedition seed and log
       this.ores = {};
-      for (const k of ORE_IDS) {
+      for (const k of MATERIAL_IDS) {
         const n = Math.floor(+t.ores?.[k] || 0);
         if (n > 0) this.ores[k] = Math.min(n, 1e7);
       }

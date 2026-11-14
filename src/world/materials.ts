@@ -45,24 +45,27 @@ export interface MaterialDef {
   glow: number;
   /** Item id dropped when this ore is mined. */
   ore?: OreItemId;
+  /** MINEAR: stone (item `stone`) each voxel of this common rock gives when it is mined, as a fraction (the dig
+   *  carries the rest to the next voxel, src/world/chunkManager.ts dig). Ore voxels give their ore instead. */
+  stone?: number;
 }
 
 /** Per-material definition, keyed by material id. */
 export const MATERIALS: Record<number, MaterialDef> = { // ov (32985)
   [Mat.Air]: { name: `Air`, color: 0, hardness: 0, glow: 0 },
   [Mat.Grass]: { name: `Grass`, color: 7320646, hardness: 1, glow: 0 },
-  [Mat.Dirt]: { name: `Dirt`, color: 11566418, hardness: 1, glow: 0 },
-  [Mat.Sand]: { name: `Sandstone`, color: 15117678, hardness: 1.6, glow: 0 },
-  [Mat.SandStripe]: { name: `Sandstone`, color: 13931099, hardness: 1.6, glow: 0 },
-  [Mat.Stone]: { name: `Stone`, color: 10986178, hardness: 4, glow: 0 },
-  [Mat.Slate]: { name: `Slate`, color: 6194324, hardness: 7, glow: 0 },
+  [Mat.Dirt]: { name: `Dirt`, color: 11566418, hardness: 1, glow: 0, stone: 0.15 },
+  [Mat.Sand]: { name: `Sandstone`, color: 15117678, hardness: 1.6, glow: 0, stone: 0.2 },
+  [Mat.SandStripe]: { name: `Sandstone`, color: 13931099, hardness: 1.6, glow: 0, stone: 0.2 },
+  [Mat.Stone]: { name: `Stone`, color: 10986178, hardness: 4, glow: 0, stone: 0.25 },
+  [Mat.Slate]: { name: `Slate`, color: 6194324, hardness: 7, glow: 0, stone: 0.3 },
   [Mat.Abyss]: { name: `Abyssal Rock`, color: 5983104, hardness: 11, glow: 0.02 },
   [Mat.Plaza]: { name: `Plaza`, color: 7320646, hardness: 1 / 0, glow: 0 },
   [Mat.Copper]: { name: `Copper`, color: 16747082, hardness: 1.8, glow: 0.05, ore: `copper` },
   [Mat.Iron]: { name: `Iron`, color: 15260875, hardness: 3.6, glow: 0.04, ore: `iron` },
   [Mat.Gold]: { name: `Gold`, color: 16765500, hardness: 5, glow: 0.14, ore: `gold` },
   [Mat.Mythril]: { name: `Mythril`, color: 7336959, hardness: 8, glow: 0.35, ore: `mythril` },
-  [Mat.Boulder]: { name: `Boulder`, color: 9273715, hardness: 3, glow: 0 },
+  [Mat.Boulder]: { name: `Boulder`, color: 9273715, hardness: 3, glow: 0, stone: 0.3 },
   [Mat.Obsidian]: { name: `Obsidian`, color: 3952494, hardness: 17, glow: 0.05 },
   [Mat.Ember]: { name: `Emberstone`, color: 9325626, hardness: 25, glow: 0.14 },
   [Mat.Void]: { name: `Voidstone`, color: 4930428, hardness: 34, glow: 0.07 },

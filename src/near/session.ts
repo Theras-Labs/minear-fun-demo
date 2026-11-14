@@ -2,9 +2,8 @@
 // Every way in ends with the same thing: a session key in this browser, so every game action is signed here
 // with no popup, and the relayer (minear-r3f/server) pays the gas.
 //   - NEAR Auth (Google, Apple, email, passkey) on testnet: the account's full key is the player's NEAR Auth key.
-//   - A NEAR wallet on testnet (NEAR Connect, minear-r3f/src/near/wallet.ts): the player's own account. The wallet
-//     adds a game key (a function-call key for the items contract only) once per browser: paid by the wallet when
-//     the account holds NEAR, else signed as a delegate action that the relayer sends (no NEAR needed).
+//   - A NEAR wallet on testnet (NEAR Connect, minear-r3f/src/near/wallet.ts): a MINEAR account <name>.<root> owned
+//     by the wallet's key, made after the wallet signs one free message. No NEAR needed.
 //   - Demo cheat (dev-local only, minear-r3f/src/game/entry.ts): a device account on the NEAR local chain
 //     (minear-r3f/server/tools/localChain.ts), made on the first Play. Its full key is kept on this device.
 // The network follows the entry mode: the local chain in the Demo cheat, testnet otherwise.
@@ -35,27 +34,30 @@ export const SERVER = CHEAT ? LOCAL_SERVER : ((import.meta.env.VITE_MINEAR_SERVE
 interface Saved extends PlayerKeys {
   via: 'nearauth' | 'device' | 'wallet';
   email?: string;
+  /** The NEAR wallet account that owns this MINEAR account (via `wallet`). */
+  wallet?: string;
 }
 
 const KEY = `minear.near.session.${DEPLOY.network}`;
 /** A signed-out account's keys: kept, so signing in again with the same NEAR Auth login finds its game key. */
 const OUT_KEY = `${KEY}.out`;
-/** Wallet players' game keys in this browser, by account: kept after sign-out, so signing in again needs no new key. */
-const WALLET_KEYS = `minear.near.walletkeys.${DEPLOY.network}`;
+/** Wallet players' MINEAR accounts and game keys in this browser, by wallet id: kept after sign-out, so signing in
+ *  again with the same wallet needs no new account. */
+const LINKED = `minear.near.linked.${DEPLOY.network}`;
 
-function walletKeys(): Record<string, KeyString> {
+function linkedKeys(): Record<string, { accountId: string; sessionKey: KeyString }> {
   try {
-    return JSON.parse(localStorage.getItem(WALLET_KEYS) ?? `{}`) as Record<string, KeyString>;
+    return JSON.parse(localStorage.getItem(LINKED) ?? `{}`) as Record<string, { accountId: string; sessionKey: KeyString }>;
   } catch {
     return {};
   }
 }
 
-function keepWalletKey(accountId: string, key: KeyString): void {
+function keepLinked(walletId: string, v: { accountId: string; sessionKey: KeyString }): void {
   try {
-    localStorage.setItem(WALLET_KEYS, JSON.stringify({ ...walletKeys(), [accountId]: key }));
+    localStorage.setItem(LINKED, JSON.stringify({ ...linkedKeys(), [walletId]: v }));
   } catch {
-    /* storage blocked: the key lasts until the page closes */
+    /* storage blocked: the account lasts until the page closes */
   }
 }
 let current: Player | null = null;
@@ -108,6 +110,8 @@ function checkLocal(): Promise<void> {
 }
 
 const rnd = () => Math.random().toString(36).slice(2, 8);
+/** A 64-character wallet id (an implicit account) shortened for messages. */
+const short = (id: string) => (/^[0-9a-f]{64}$/.test(id) ? `${id.slice(0, 8)}…${id.slice(-6)}` : id);
 
 /** Makes the player's record on the contract (starter coins) the first time; later sign-ins skip the call. */
 async function registerOnce(p: Player): Promise<void> {
@@ -210,85 +214,50 @@ export const session = {
   },
 
   /**
-   * NEAR wallet sign-in on testnet (HOT, Meteor, MyNearWallet... through NEAR Connect). The player's own account
-   * plays. The first time in a browser the wallet approves one game key (a function-call key for the items
-   * contract only: it cannot move NEAR or gear). After that every game action is signed here with no popup.
-   * `step` gets a line to show while the wallet waits for the player.
+   * NEAR wallet sign-in on testnet (Meteor, Intear, Nightly... through NEAR Connect). The user's choice
+   * (2026-11-15): a MINEAR account linked to the wallet. In one wallet window the player connects and signs a free
+   * message (no transaction, no NEAR). The server checks it and creates <name>.<root> owned by the wallet's key, with
+   * a game key in this browser (minear-r3f/server/src/onboard.ts walletOnboard). The wallet account itself needs no
+   * NEAR and may not exist on chain yet (a new wallet's 64-character id). `step` gets a line to show meanwhile.
    */
   async wallet(step?: (text: string) => void): Promise<Player> {
     if (CHEAT) throw new GameError(`NEAR wallets are for NEAR testnet. The Demo cheat uses a local testnet account.`);
-    step?.(`Pick your wallet…`);
-    let w: Awaited<ReturnType<typeof near.connectWallet>>;
+    step?.(`Pick your wallet, then approve the sign-in (free, no transaction)…`);
+    const nonce = crypto.getRandomValues(new Uint8Array(32));
+    const message = `MINEAR sign-in ${new Date().toISOString()}`;
+    const recipient = `MINEAR`;
+    let w: Awaited<ReturnType<typeof near.connectAndSign>>;
     try {
-      w = await near.connectWallet();
+      w = await near.connectAndSign({ message, recipient, nonce });
     } catch (e) {
       const why = e instanceof Error ? e.message : ``;
       throw new GameError(
         /reject|clos|cancel/i.test(why) || !why ? `The wallet picker was closed. Connect a NEAR wallet to try again.` : `Wallet sign-in did not finish: ${why}`,
       );
     }
-    const { wallet, accountId } = w;
+    const { accountId: walletId, signed } = w;
     const rpc = providerFor(DEPLOY);
-    // a game key this browser already has for the account: no wallet step at all
-    const known = walletKeys()[accountId];
-    if (known && (await hasAccessKey(rpc, accountId, KeyPair.fromString(known).getPublicKey().toString()))) {
-      set({ accountId, sessionKey: known, via: `wallet` });
+    // this browser already plays the wallet's MINEAR account: no server step
+    const known = linkedKeys()[walletId];
+    if (known && (await hasAccessKey(rpc, known.accountId, KeyPair.fromString(known.sessionKey).getPublicKey().toString()))) {
+      set({ accountId: known.accountId, sessionKey: known.sessionKey, via: `wallet`, wallet: walletId });
       await registerOnce(current!);
       return current!;
     }
+    if (!signed) throw new GameError(`${w.wallet.manifest.name} signed in but did not sign the MINEAR message. Pick another wallet, or use Continue with Google.`);
+    step?.(`Making your MINEAR account…`);
     const kp = KeyPair.fromRandom(`ed25519`);
-    const publicKey = kp.getPublicKey().toString();
-    const pays = (await spendable(rpc, accountId)) >= BigInt(GAME_CONFIG.ownGasAbove);
-    // An account that pays its own gas gets a key with no allowance cap: NEAR takes each call's full prepaid gas
-    // (about 0.05 NEAR) from a capped allowance and does not give the unused part back, so 0.25 NEAR would stop the
-    // key after about 5 actions. The key still reaches only the items contract, with no deposit: it cannot move
-    // NEAR or gear; the most it can spend is gas. A key the relayer pays for keeps the 0.25 NEAR cap (relayer.ts).
-    const addKey = {
-      type: `AddKey` as const,
-      params: {
-        publicKey,
-        accessKey: {
-          permission: pays
-            ? { receiverId: DEPLOY.contract, methodNames: [] }
-            : { receiverId: DEPLOY.contract, allowance: GAME_CONFIG.sessionAllowance, methodNames: [] },
-        },
-      },
-    };
-    try {
-      if (pays) {
-        step?.(`Approve the game key in your wallet (once per browser, about 0.002 NEAR)…`);
-        await wallet.signAndSendTransaction({ network: near.network, signerId: accountId, receiverId: accountId, actions: [addKey] });
-      } else if (wallet.manifest.features?.signDelegateActions) {
-        step?.(`Approve the game key in your wallet (once per browser; the game pays the gas)…`);
-        const r = await wallet.signDelegateActions({ network: near.network, signerId: accountId, delegateActions: [{ receiverId: accountId, actions: [addKey] }] });
-        const signed = r.signedDelegateActions?.[0];
-        if (!signed) throw new Error(`the wallet returned no signed request`);
-        const res = await fetch(`${SERVER}/relay`, {
-          method: `POST`,
-          headers: { 'content-type': `application/json` },
-          body: JSON.stringify({ signedDelegate: signed }),
-        });
-        const body = (await res.json()) as { ok: boolean; error?: string };
-        if (!body.ok) throw new Error(body.error ?? `the relayer refused the game key`);
-      } else {
-        throw new GameError(
-          `${accountId} has no NEAR for the one-time game key, and ${wallet.manifest.name} cannot let the game pay for it. ` +
-            `Add about 0.01 testnet NEAR to the account, pick another wallet, or use Continue with Google.`,
-        );
-      }
-    } catch (e) {
-      if (e instanceof GameError) throw e;
-      throw new GameError(`The game key was not added: ${e instanceof Error ? e.message : String(e)}`);
-    }
-    step?.(`Waiting for the game key on chain…`);
-    let on = false;
-    for (let i = 0; i < 20 && !on; i++) {
-      on = await hasAccessKey(rpc, accountId, publicKey);
-      if (!on) await new Promise((r) => setTimeout(r, 1000));
-    }
-    if (!on) throw new GameError(`The wallet said yes, but the game key is not on ${accountId} yet. Try again in a minute.`);
-    keepWalletKey(accountId, kp.toString() as KeyString);
-    set({ accountId, sessionKey: kp.toString() as KeyString, via: `wallet` });
+    let nb = ``;
+    for (let i = 0; i < nonce.length; i++) nb += String.fromCharCode(nonce[i]);
+    const res = await fetch(`${SERVER}/onboard-wallet`, {
+      method: `POST`,
+      headers: { 'content-type': `application/json` },
+      body: JSON.stringify({ walletId, publicKey: signed.publicKey, signature: signed.signature, message, nonce: btoa(nb), recipient, sessionKey: kp.getPublicKey().toString() }),
+    });
+    const body = (await res.json()) as { ok: boolean; accountId?: string; error?: string };
+    if (!body.ok || !body.accountId) throw new GameError(body.error ?? `Could not make your MINEAR account`);
+    keepLinked(walletId, { accountId: body.accountId, sessionKey: kp.toString() as KeyString });
+    set({ accountId: body.accountId, sessionKey: kp.toString() as KeyString, via: `wallet`, wallet: walletId });
     await registerOnce(current!);
     return current!;
   },
@@ -302,7 +271,7 @@ export const session = {
    *  Auth login finds them, so this browser can still play that account. */
   signOut(): void {
     pending = null;
-    if (saved?.via === `wallet`) void near.signOut(); // the game key stays in this browser (WALLET_KEYS) for next time
+    if (saved?.via === `wallet`) void near.signOut(); // the account and its game key stay in this browser (LINKED)
     if (saved?.via === `nearauth`)
       try {
         localStorage.setItem(OUT_KEY, JSON.stringify(saved));

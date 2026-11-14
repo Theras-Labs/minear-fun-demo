@@ -114,7 +114,7 @@ export interface GearItem {
   name: string;
   /** Not yet seen in the inventory. */
   fresh?: boolean;
-  /** MINEAR Forge: the metal the piece was forged from (`iron`, `gold`, `mythril`); it names the piece
+  /** MINEAR Forge: the metal the piece was forged from (`stone`, `iron`, `gold`, `mythril`); it names the piece
    *  ("Iron Knight Helm") and picks its metal icon (minear-r3f/src/menus/gearIcons.ts). Absent on loot gear. */
   ore?: string;
   /** MINEAR: the NFT token id ("g12") of a piece the chain forged (minear-r3f/contracts/items/src/gear.rs).
@@ -123,7 +123,7 @@ export interface GearItem {
 }
 
 /** The metal word of a forged piece. */
-export const FORGE_METAL: Record<string, string> = { copper: `Copper`, iron: `Iron`, gold: `Gold`, mythril: `Mythril` };
+export const FORGE_METAL: Record<string, string> = { stone: `Stone`, copper: `Copper`, iron: `Iron`, gold: `Gold`, mythril: `Mythril` };
 
 /** Rounds a rolled stat value (0.05 steps for ' m' and ' HP/s', else whole numbers, at least 1). */
 export const roundStat = (e: string, t: number): number => { // tj (54016)

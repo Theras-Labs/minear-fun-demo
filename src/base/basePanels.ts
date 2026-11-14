@@ -16,7 +16,7 @@ import type { PlayerState } from '../state/playerState';
 import { TIER_COLORS, TIER_DARK, TIER_NAMES } from '../state/progression';
 import { ITEMS, RARITY_COLORS, type ItemDef } from '../world/items';
 import { ForgeReveal, forgeMakeHTML, forgePickHTML, runForge } from './forgeView';
-import { ORE_IDS } from './run';
+import { MATERIAL_IDS } from './run';
 import { SITE_BY_ID, siteStatus, type SiteId, type UnlockView } from './sites';
 import {
   CAPSULE_COIN_PRICE,
@@ -90,6 +90,8 @@ export interface BaseDeskHost {
   goHome(): void;
   /** True on the island. */
   atBase(): boolean;
+  /** MINEAR: a Make or x10 at the Forge made gear in this grade (the tutorial's `forge` step waits for it). */
+  onForged?(grade: string): void;
 }
 
 // ---- crests ---------------------------------------------------------------------------------------------
@@ -120,7 +122,7 @@ const oreIcon = (id: string): string => `<span class="bz-ic">${gearIcons.lootHtm
 
 /** The ore on chain (the vault) and the Capsule Coins. */
 function oreStrip(s: PlayerState): string {
-  return `<div class="bz-ores" title="Your ore on chain, ready to use">${ORE_IDS.map(
+  return `<div class="bz-ores" title="Your materials on chain, ready to use">${MATERIAL_IDS.map(
     (id) =>
       `<span class="bz-ore" style="--c:${hex(ITEM[id].color)}">${oreIcon(id)}<b>${num(oreHave(s, id))}</b><small>${ITEM[id].name}</small></span>`,
   ).join(``)}<span class="bz-ore cap"><i class="bz-capcoin"></i><b>${num(s.capsules)}</b><small>Capsule</small></span></div>`;
@@ -345,7 +347,10 @@ export class BaseDesk {
             (run) => {
               this.busy = false;
               this.msg = null;
-              if (run) this.showRun(sh, theme, run);
+              if (run) {
+                this.showRun(sh, theme, run);
+                h.onForged?.(run.grade.id);
+              }
               else {
                 h.audio.deny();
                 this.render(sh, theme);

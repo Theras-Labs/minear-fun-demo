@@ -289,12 +289,34 @@ html.phone #loading .lsoil {
 }
 /* Connect a NEAR wallet: under Google, quieter (src/menus/lobby.ts) */
 #start #wallet-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
   padding: 6px 14px 5px;
   color: #f4f7ff;
   font-size: 16px;
   text-shadow: none;
   background: #1d1f2b;
+}
+#start #wallet-login .gi {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+#start #wallet-login .gi svg {
+  width: 100%;
+  height: 100%;
+}
+#start .who .note {
+  display: inline-block;
+  padding: 6px 10px;
+  color: #6b4a1f;
+  background: #ffe9b8;
+  border: 1.5px solid #e9c06a;
+  border-radius: 10px;
 }
 #start #wallet-login:disabled {
   opacity: 0.7;
@@ -338,7 +360,14 @@ html.phone #loading .lsoil {
 #start .entry.on-cheat #play {
   font-size: 17px;
 }
+/* grid items may shrink below their text: a long account name stays inside the card */
+#start .entry > * {
+  min-width: 0;
+  max-width: 100%;
+}
 #start .who {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
   margin: 0;
   color: #7a5c45;
   font-size: 13px;

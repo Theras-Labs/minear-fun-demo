@@ -22,6 +22,9 @@ export interface ForgeGrade {
  *  pay only the network gas of an on-chain action (or the relayer pays it for a wallet with no NEAR), so the
  *  coin costs here are 0. The fields stay for old saves and the panel code. */
 export const FORGE_GRADES: ForgeGrade[] = [
+  // MINEAR (user, 2026-11-15): the first gear is stone. A new miner brings stone home from the first trip, makes
+  // Stone Claws here, and the claws last longer underground (CLAW_TIERS, minear-r3f/src/game/clawEndurance.ts).
+  { id: `stone`, name: `Stone forging`, ore: `stone`, n: 10, coins: 0, weights: [85, 14, 1, 0, 0] },
   { id: `iron`, name: `Iron forging`, ore: `iron`, n: 20, coins: 0, weights: [55, 35, 9, 1, 0] },
   { id: `gold`, name: `Gold forging`, ore: `gold`, n: 12, coins: 0, also: [{ ore: `iron`, n: 10 }], weights: [8, 40, 40, 10, 2] },
   { id: `mythril`, name: `Mythril forging`, ore: `mythril`, n: 6, coins: 0, also: [{ ore: `gold`, n: 6 }], weights: [0, 6, 42, 40, 12] },
@@ -75,7 +78,7 @@ export const FORGE_LVL: [number, number] = [10, 900];
 /** The deepest a trip report may say: the world's bottom (Heartstone, 1,100 m) with a margin. */
 export const MAX_TRIP_DEPTH_M = 1200;
 
-const ORE_NAME: Record<string, string> = { copper: `Copper`, iron: `Iron`, gold: `Gold`, mythril: `Mythril` };
+const ORE_NAME: Record<string, string> = { stone: `Stone`, copper: `Copper`, iron: `Iron`, gold: `Gold`, mythril: `Mythril` };
 const tok = (ore: string) => `ore.${ore}`;
 
 /** The contract's ForgeConfig (gear.rs), for setup.ts `set_forge`. */

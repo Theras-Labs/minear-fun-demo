@@ -169,7 +169,7 @@
 }
 .fv-oddlist li i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 2px solid var(--ink); }
 .fv-oddlist li.zero { opacity: 0.45; }
-.fv-mats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.fv-mats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .bz .fv-mat {
   position: relative;
   display: flex;
@@ -567,7 +567,7 @@
   .fv-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .fv-make { grid-template-columns: 1fr; }
   .fv-sic { width: 76px; height: 76px; }
-  .fv-mats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fv-mats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bz .fv-mat { flex-direction: column; text-align: center; gap: 2px; }
   .fv-rv-title { font-size: 40px; }
   .fv-rv.t4 .fv-rv-title { font-size: 56px; }

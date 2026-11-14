@@ -6,7 +6,7 @@ import { ITEMS } from '../world/items';
 import { DEPTH_LAYERS } from './depthBar';
 
 /** Ore ids in the order the HUD lists them. */
-const ORES = [`copper`, `iron`, `gold`, `mythril`] as const;
+const ORES = [`stone`, `copper`, `iron`, `gold`, `mythril`] as const;
 /** Below this depth (m) a trip starts; on the surface the last trip's haul stays on show. */
 const TRIP_DEPTH = 4;
 

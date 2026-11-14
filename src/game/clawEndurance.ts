@@ -1,12 +1,15 @@
 // MINEAR: claw endurance. nearmol has no drill: its claws wear down as they dig rock, and worn-out claws dig
 // as slowly as rock that is too hard. They rest back to full on the surface, and slowly underground when they
-// are not digging. Claw tiers (bare, copper, iron, gold, mythril) set the most endurance; only bare claws are
-// in the game until the claw upgrade comes. The values live in the player state (saved): clawTier and
-// clawEndurance (-1 = full).
+// are not digging. The piece worn in the Claws slot (claws, gauntlet or jet pump) sets the most endurance by the
+// metal the Forge made it from: bare (nothing worn), stone, copper, iron, gold, mythril. The endurance left lives
+// in the player state (saved): clawEndurance (-1 = full).
+// MINEAR (user, 2026-11-15): a new miner starts small, like picocraft (10 durability, 1 per block): bare claws last
+// about 10 s of mining, so the first trip is short. Stone Claws from the Forge double it.
 
 // Dev and cheat phase: the claws cheat (src/game/cheats.ts, on by default) keeps them from wearing out. Untick it
 // in the Cheats panel, or add ?claws=limited to the URL, to play with the real endurance.
 import { cheats } from './cheats';
+import type { GearItem } from '../state/gear';
 
 export interface ClawTier {
   id: string;
@@ -18,21 +21,29 @@ export interface ClawTier {
 }
 
 export const CLAW_TIERS: ClawTier[] = [
-  { id: `bare`, name: `Bare Claws`, max: 50, color: `#fff1d6` },
-  { id: `copper`, name: `Copper Claws`, max: 80, color: `#ff8a4a` },
-  { id: `iron`, name: `Iron Claws`, max: 120, color: `#e8dccb` },
-  { id: `gold`, name: `Gold Claws`, max: 170, color: `#ffd23c` },
-  { id: `mythril`, name: `Mythril Claws`, max: 240, color: `#6ff3ff` },
+  { id: `bare`, name: `Bare Claws`, max: 15, color: `#fff1d6` },
+  { id: `stone`, name: `Stone Claws`, max: 30, color: `#b9b0a2` },
+  { id: `copper`, name: `Copper Claws`, max: 50, color: `#ff8a4a` },
+  { id: `iron`, name: `Iron Claws`, max: 80, color: `#e8dccb` },
+  { id: `gold`, name: `Gold Claws`, max: 120, color: `#ffd23c` },
+  { id: `mythril`, name: `Mythril Claws`, max: 170, color: `#6ff3ff` },
 ];
+
+/** The claw tier of the piece worn in the Claws slot: its Forge metal; a piece with no metal (loot from before
+ *  the Forge) counts as copper; nothing worn is bare. */
+export function clawTierOf(worn: GearItem | null | undefined): ClawTier {
+  if (!worn) return CLAW_TIERS[0];
+  return CLAW_TIERS.find((t) => t.id === worn.ore) ?? CLAW_TIERS[2];
+}
 
 /**
  * Endurance one dig hit costs in rock of this hardness (a hit every 0.06 s while digging):
  * Dirt 0.08, Sandstone 0.09, Stone 0.14, Slate 0.2, Abyssal Rock 0.28, Obsidian 0.4.
  */
 export const digCost = (hardness: number): number => 0.06 * (1 + Math.min(hardness, 44) / 3);
-/** Endurance per second while resting on the surface (bare claws fill in 2 s). */
+/** Endurance per second while resting on the surface (bare claws fill in under 1 s). */
 export const REST_SURFACE = 25;
-/** Endurance per second underground, after REST_DELAY seconds without digging (bare claws: about 2 minutes). */
+/** Endurance per second underground, after REST_DELAY seconds without digging (bare claws: about 40 s). */
 export const REST_DEEP = 0.4;
 export const REST_DELAY = 1.5;
 /** Dig strength with worn-out claws (the same factor as rock that is too hard, world/edit.ts). */
@@ -42,10 +53,10 @@ export class ClawEndurance {
   /** Seconds since the last dig hit. */
   idleT = 99;
 
-  constructor(private s: { clawTier: number; clawEndurance: number }) {}
+  constructor(private s: { clawEndurance: number; gear: { drill: GearItem | null } }) {}
 
   get tier(): ClawTier {
-    return CLAW_TIERS[Math.max(0, Math.min(CLAW_TIERS.length - 1, Math.floor(this.s.clawTier) || 0))];
+    return clawTierOf(this.s.gear.drill);
   }
   get max(): number {
     return this.tier.max;

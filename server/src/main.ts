@@ -10,6 +10,8 @@
 //                                                      empty after a restart; minear-r3f/server/src/relayer.ts)
 //   POST /relay   { signedDelegate }        pays gas for one game call
 //   POST /onboard { name, sessionKey, fullKey }   creates <name>.<root>
+//   POST /onboard-wallet { walletId, publicKey, signature, message, nonce, recipient, sessionKey }
+//                           a NEAR wallet's MINEAR account <name>.<root>, owned by the wallet's key (onboard.ts)
 //   POST /dev/grant { accountId, items: [[token, n]] }   LOCAL CHAIN ONLY (MINEAR_NETWORK=local, port 8788):
 //                                                      Stock up of the dev-local Demo cheat (owner_mint)
 import { budgetStatus } from './budget';
@@ -17,7 +19,7 @@ import { devGrant } from './devGrant';
 import { HOST, LOCAL, NETWORK, PORT, loadDeploy } from './env';
 import { getBoard, invalidateBoard, quoteFor } from './merchants';
 import { errorText } from './near';
-import { onboard } from './onboard';
+import { onboard, walletOnboard } from './onboard';
 import { recentEvents, relay } from './relayer';
 import { aiEnabled, talkFor } from './talk';
 
@@ -61,6 +63,11 @@ const server = Bun.serve({
         const body = (await req.json().catch(() => ({}))) as Record<string, string>;
         if (url.pathname === `/relay`) {
           const r = await relay(deploy, String(body.signedDelegate ?? ``), invalidateBoard);
+          return json(r.body, r.status);
+        }
+        if (url.pathname === `/onboard-wallet`) {
+          const ip = srv.requestIP(req)?.address ?? `unknown`;
+          const r = await walletOnboard(deploy, body, ip);
           return json(r.body, r.status);
         }
         if (url.pathname === `/onboard`) {
