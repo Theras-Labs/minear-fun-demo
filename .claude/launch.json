@@ -1,0 +1,92 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "characters-viewer",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5197",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/Users/Shared/march-2026/minear-r3f"
+      ],
+      "port": 5197
+    },
+    {
+      "name": "minear-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5183",
+        "--strictPort",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 5183
+    },
+    {
+      "name": "minear-dev-5184",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5184",
+        "--strictPort",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 5184
+    },
+    {
+      "name": "minear-server",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": [
+        "--watch",
+        "server/src/main.ts"
+      ],
+      "port": 8787
+    },
+    {
+      "name": "minear-local-chain",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "local:chain"],
+      "port": 3030
+    },
+    {
+      "name": "minear-server-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "local:server"],
+      "port": 8788
+    },
+    {
+      "name": "minear-local-stack",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:local"],
+      "port": 5187
+    },
+    {
+      "name": "minear-testnet-stack",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:testnet"],
+      "port": 3000,
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "minear-dev-5186",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5186",
+        "--strictPort",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 5186
+    }
+  ]
+}
