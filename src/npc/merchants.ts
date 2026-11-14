@@ -11,7 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MERCHANTS } from '../economy/pricing';
 import { TOKEN_BY_ID } from '../economy/catalog';
 import { MERCHANT_ISLAND, SATELLITES } from '../hub/satellites';
-import { MINEAR_BASE } from '../miner/loader';
+import { loadMole } from '../miner/loader';
 
 /** How each merchant looks: fur tint, hat, stall colour, sign colour. */
 interface MerchantLook {
@@ -275,7 +275,7 @@ export class Merchants {
     this.loaded = true;
     let src: THREE.Group;
     try {
-      src = (await new GLTFLoader().loadAsync(`${MINEAR_BASE}/nearmol.glb`)).scene;
+      src = (await loadMole(new GLTFLoader())).gltf.scene; // nearmol.glb when present, else mole_jacket.glb
     } catch {
       return; // the stalls and signs still stand; the merchant bodies are missing
     }

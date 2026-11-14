@@ -107,6 +107,24 @@ export const BODY_NEARMOL: MinerBody = {
   },
 };
 
+/**
+ * The fallback mole, mole_jacket (public/minear/mole_jacket.glb, CC-BY-4.0, credit in README): the
+ * game plays it when this checkout has no nearmol.glb (nearmol is kept local, not in git). Same KayKit Rig_Medium
+ * skeleton, 2.0 units tall instead of 1.6: the scale and the crawl points are nearmol's times 1.6 / 2.0, and the hips
+ * track is re-based on its hips (0.56 / 0.4057 = 1.380).
+ */
+export const BODY_MOLE_JACKET: MinerBody = {
+  ...BODY_NEARMOL,
+  scale: 0.68,
+  clipK: { leg: 1.38, arm: 1, hand: 1 },
+  crawl: {
+    lift: 0.625,
+    center: new THREE.Vector3(0, 0.975, 0.31),
+    nose: new THREE.Vector3(0, 0.1, 1.19),
+    tail: new THREE.Vector3(0, 0.1, -0.875),
+  },
+};
+
 /** Grain strength per material name. */
 export const MATERIAL_GRAIN: Record<string, number> = { // qT (45753)
   M3_Coat: 0.16,

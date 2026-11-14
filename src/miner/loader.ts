@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { BODY_BASE, BODY_CLASSIC, BODY_JET, BODY_NEARMOL, BODY_SOFT, BODY_V5, type MinerBody } from './presets';
+import { BODY_BASE, BODY_CLASSIC, BODY_JET, BODY_MOLE_JACKET, BODY_NEARMOL, BODY_SOFT, BODY_V5, type MinerBody } from './presets';
 import { retargetClip } from './retarget';
 import { downscaleTextures } from './textureDownscale';
 
@@ -59,6 +59,20 @@ export async function loadMiner(): Promise<MinerAsset> { // QT (45809)
   return { scene: model.scene, clips: anims.animations, body: BODY_CLASSIC };
 }
 
+/** The player's mole model: nearmol.glb when this checkout has it (it is kept local, not in git), else the
+ *  mole_jacket.glb fallback (CC-BY-4.0, credit in README). Both use the KayKit Rig_Medium
+ *  skeleton and a `hatslot`. The merchants use the same pick (minear-r3f/src/npc/merchants.ts). */
+export async function loadMole(loader: GLTFLoader): Promise<{ gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>>; body: MinerBody; file: string }> {
+  // dev only: ?mole=jacket shows the fallback, as a fresh copy of the repository (no nearmol.glb) plays it
+  const forceJacket = import.meta.env.DEV && typeof location !== `undefined` && new URLSearchParams(location.search).get(`mole`) === `jacket`;
+  try {
+    if (forceJacket) throw Error(`?mole=jacket`);
+    return { gltf: await loader.loadAsync(`${MINEAR_BASE}/nearmol.glb`), body: BODY_NEARMOL, file: `nearmol.glb` };
+  } catch {
+    return { gltf: await loader.loadAsync(`${MINEAR_BASE}/mole_jacket.glb`), body: BODY_MOLE_JACKET, file: `mole_jacket.glb` };
+  }
+}
+
 /**
  * nearmol: the mole body, its hard hat in `hatslot`, and the miner's jetpack (back) taken from miner4.glb.
  * Both skeletons have the KayKit rest angles, so a part keeps its transform relative to its bone; the
@@ -66,19 +80,20 @@ export async function loadMiner(): Promise<MinerAsset> { // QT (45809)
  */
 async function loadNearmol(): Promise<MinerAsset> {
   const loader = new GLTFLoader();
-  const [mole, hat, miner, anims, crawl] = await Promise.all([
-    loader.loadAsync(`${MINEAR_BASE}/nearmol.glb`),
+  const [picked, hat, miner, anims, crawl] = await Promise.all([
+    loadMole(loader),
     loader.loadAsync(`${MINEAR_BASE}/hats/hard_hat.glb`),
     loader.loadAsync(`${ASSET_BASE}/models/miner4.glb`),
     loader.loadAsync(`${ASSET_BASE}/models/miner_anims.glb`),
     loader.loadAsync(`${MINEAR_BASE}/anims/crawl.glb`),
   ]);
+  const { gltf: mole, body, file } = picked;
   const scene = mole.scene;
   scene.updateMatrixWorld(true);
   miner.scene.updateMatrixWorld(true);
   const bone = (name: string) => {
     const node = scene.getObjectByName(name);
-    if (!node) throw Error(`nearmol.glb is missing node "${name}"`);
+    if (!node) throw Error(`${file} is missing node "${name}"`);
     return node;
   };
   const take = (name: string, into: THREE.Object3D) => {
@@ -127,8 +142,8 @@ async function loadNearmol(): Promise<MinerAsset> {
   bone(`head`).add(eyes);
 
   downscaleTextures(scene);
-  const clips = retargetClip([...anims.animations, ...crawl.animations], anims.scene, scene, BODY_NEARMOL.clipK!);
-  return { scene, clips, body: BODY_NEARMOL };
+  const clips = retargetClip([...anims.animations, ...crawl.animations], anims.scene, scene, body.clipK!);
+  return { scene, clips, body };
 }
 
 /** The most backward (lowest z) point of the mole's skinned meshes near height y, within the middle of the back. */
