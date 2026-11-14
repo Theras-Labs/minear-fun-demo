@@ -1,0 +1,120 @@
+/* Market Town panel (minear-r3f/src/menus/market.ts). Uses the game tokens from minear-r3f/src/brand/game.css. */
+#market {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #17142acc;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+#market.hidden { display: none; }
+#market .mkt-sheet {
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--cream, #fff6e5);
+  color: var(--ink, #3a281c);
+  border: 4px solid var(--ink, #3a281c);
+  border-radius: 22px;
+  box-shadow: 0 8px 0 #3a281c73;
+  overflow: hidden;
+}
+#market header { display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px 10px; border-bottom: 3px solid var(--cream-2, #f3e5c8); }
+#market header .titles { flex: 1; min-width: 0; }
+#market h2 { margin: 0; font-size: 26px; }
+#market .sub { margin: 2px 0 0; color: var(--ink-soft, #7a5c45); font-size: 14px; }
+#market .close { flex: none; }
+#market .mkt-body { overflow-y: auto; padding: 12px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+#market .mkt-body.busy { cursor: progress; }
+#market .mkt-msg { min-height: 0; padding: 0 18px; font-size: 14px; }
+#market .mkt-msg:not(:empty) { padding: 8px 18px; border-top: 3px solid var(--cream-2, #f3e5c8); }
+#market .mkt-msg[data-kind='ok'] { color: #1f7a54; }
+#market .mkt-msg[data-kind='err'] { color: #b8322a; }
+#market h3 { margin: 0 0 6px; font-size: 18px; }
+#market h3 small { font-weight: 400; color: var(--ink-soft, #7a5c45); font-size: 13px; margin-left: 6px; }
+#market .soft { color: var(--ink-soft, #7a5c45); }
+#market .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+#market .mkt-card { background: #fffaf0; border: 3px solid var(--cream-2, #f3e5c8); border-radius: 16px; padding: 12px 14px; }
+#market .mkt-card p { margin: 4px 0; }
+#market .mkt-signin input,
+#market input[type='number'] {
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  border: 2px solid var(--ink-soft, #7a5c45);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+#market input[type='number'] { width: 64px; padding: 3px 4px; }
+#market .or { color: var(--ink-soft, #7a5c45); }
+#market .mkt-btn {
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink, #3a281c);
+  background: var(--cream-2, #f3e5c8);
+  border: 2px solid var(--ink, #3a281c);
+  border-radius: 12px;
+  padding: 7px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #3a281c73;
+}
+#market .mkt-btn.primary { background: var(--gold, #ffc23d); }
+#market .mkt-btn.small { padding: 3px 8px; font-size: 13px; border-radius: 9px; }
+#market .mkt-btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+#market .mkt-btn:not(:disabled):hover { transform: translateY(-1px); }
+#market .mkt-link { font: inherit; font-size: 13px; color: #2a6fb0; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+#market .mkt-acct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+#market .mkt-acct small { color: var(--ink-soft, #7a5c45); }
+#market .pill { display: inline-flex; align-items: center; gap: 4px; background: #fff; border: 2px solid var(--cream-2, #f3e5c8); border-radius: 999px; padding: 2px 10px; font-size: 14px; }
+#market .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+#market .chip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+#market .chips .chip { background: #fff; border: 2px solid var(--cream-2, #f3e5c8); border-radius: 999px; padding: 2px 10px; font-size: 14px; }
+#market .chip i { width: 11px; height: 11px; border-radius: 3px; transform: rotate(45deg); background: var(--c); border: 1.5px solid #3a281c99; flex: none; }
+#market .mkt-shops { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 12px; }
+#market .mkt-shop { min-width: 0; background: #fffaf0; border: 3px solid var(--cream-2, #f3e5c8); border-radius: 16px; padding: 10px 12px; }
+#market .mkt-shop.is-closed { background: #f5ece0; border-color: #e0b4a8; }
+#market .mkt-shop header { padding: 0; border: 0; align-items: baseline; }
+#market .mkt-shop h4 { margin: 0; flex: 1; font-size: 18px; }
+#market .mkt-shop h4 span { font-weight: 400; color: var(--ink-soft, #7a5c45); font-size: 14px; }
+#market .cash { font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+#market .blurb { margin: 2px 0 6px; font-size: 13px; color: var(--ink-soft, #7a5c45); }
+#market .closed { background: #ffe1d9; border-radius: 10px; padding: 6px 8px; margin-bottom: 6px; font-size: 14px; }
+#market .closed b { color: #b8322a; }
+#market .closed small { display: block; color: var(--ink-soft, #7a5c45); }
+#market table { width: 100%; border-collapse: collapse; font-size: 14px; }
+#market th { text-align: left; font-weight: 600; color: var(--ink-soft, #7a5c45); font-size: 12px; padding: 0 4px 2px; }
+#market td { padding: 4px; border-top: 1px solid var(--cream-2, #f3e5c8); vertical-align: middle; }
+#market td small { display: block; color: var(--ink-soft, #7a5c45); font-size: 11px; }
+#market td.nm small { margin-left: 16px; }
+#market td.px { white-space: nowrap; font-weight: 700; cursor: help; text-decoration: underline dotted #7a5c4588; text-underline-offset: 3px; }
+#market td.go { white-space: nowrap; text-align: right; }
+#market .mkt-tip {
+  position: fixed;
+  z-index: 61;
+  max-width: 360px;
+  background: var(--ink, #3a281c);
+  color: var(--cream, #fff6e5);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 0 #0006;
+  pointer-events: none;
+}
+#market .mkt-tip ul { margin: 6px 0 0; padding-left: 18px; }
+#market .mkt-tip li { margin: 2px 0; }
+@media (max-width: 560px) {
+  #market { padding: 0; }
+  #market .mkt-sheet { border-radius: 0; max-height: 100vh; height: 100%; border-width: 0; }
+  #market .mkt-body { padding: 10px 16px 16px; }
+  #market .mkt-shops { grid-template-columns: 1fr; }
+  #market h2 { font-size: 22px; }
+  #market td { padding: 4px 2px; }
+  #market td.go { white-space: normal; }
+  #market td.go input[type='number'] { width: 46px; display: block; margin: 0 0 3px auto; }
+  #market .mkt-shop { padding: 8px; }
+}

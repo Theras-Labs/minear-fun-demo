@@ -1,0 +1,756 @@
+/* MINEAR skill tree on the inventory's Skills page (view: minear-r3f/src/menus/skillTree.ts, data and rules:
+   minear-r3f/src/state/skillTree.ts). The house look of the game's sheets (minear-r3f/src/brand/game.css tokens,
+   the inventory item tiles, the base cards in minear-r3f/src/base/base.css): Fredoka, cream and brown, ink
+   outlines, rounded corners, a short ink drop shadow. The view sets the sizes as CSS variables on .stree
+   (--cell, --node, --big, --ol, --drop, --dot, --pg, --line, --tipw, --tail). Each branch has one accent colour
+   (--bc, from the b-<branch> class). Everything here is scoped under .stree, plus the Skills page box and the
+   locked belt slots of the gear page (the Belt Loops node opens them). */
+
+/* The page takes the height the other inventory pages give the sheet; the tree fills it. */
+.sheet.inv .skillspage.page {
+  position: relative;
+  min-height: 440px;
+}
+html.phone .sheet.inv .skillspage.page {
+  min-height: 260px;
+}
+
+/* Locked belt slots on the gear page (same look as the locked gem bag slots). */
+.inv .beltrow .bslot2.locked {
+  cursor: default;
+}
+.inv .beltrow .itile.locked {
+  box-shadow: none;
+  background: #28180e73;
+  border: 2.5px dashed #fff0dc40;
+  display: grid;
+  place-items: center;
+}
+.inv .beltrow .itile.locked svg {
+  opacity: 0.45;
+  width: 26px;
+  height: 26px;
+}
+.inv .beltrow .bslot2.locked kbd {
+  opacity: 0.5;
+}
+
+/* Branch accents: Digging orange, Fortune and loot gold, Survival coral red, Travel and Combat sky, home teal. */
+.stree {
+  --bc: #c4a47c;
+  --go: #2fae63;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  color: var(--ink, #3a281c);
+}
+.stree .b-home {
+  --bc: var(--teal, #37b3ad);
+}
+.stree .b-dig {
+  --bc: var(--orange, #f08a2a);
+}
+.stree .b-loot {
+  --bc: var(--gold, #ffc23d);
+}
+.stree .b-live {
+  --bc: var(--red, #ff5a4f);
+}
+.stree .b-move {
+  --bc: var(--sky, #5fc8ff);
+}
+
+/* Header: the banner and what the miner holds. */
+.stree-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+.stree-banner {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border: 2.5px solid var(--ink, #3a281c);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink, #3a281c);
+}
+.stree-banner.base {
+  background: #d9f6e4;
+  color: #1f7a54;
+}
+.stree-banner.away {
+  background: #ffe1d9;
+  color: #b8322a;
+}
+.stree-banner.flash {
+  animation: stree-flash 0.6s ease-out;
+}
+.stree-res {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 6px;
+}
+.stree-r {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 5px;
+  font-size: 14px;
+  background: #fff;
+  border: 2.5px solid var(--ink, #3a281c);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink, #3a281c);
+}
+.stree-oi {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+.stree-oi img,
+.stree-oi svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* The pannable field: the cream sheet tone, a faint dot grid between the nodes, a soft warm vignette. */
+.stree-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 3px solid var(--ink, #3a281c);
+  border-radius: 16px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  background-color: #f8ecd5;
+  background-image: radial-gradient(circle, #3a281c1c 0 1.7px, #0000 2.3px);
+  background-size: var(--cell, 76px) var(--cell, 76px);
+  box-shadow: inset 0 3px 0 #3a281c12;
+}
+.stree-view::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #fffaf0b0 0%, #fffaf000 50%, #c99f6a38 100%);
+  pointer-events: none;
+}
+.stree-view.drag {
+  cursor: grabbing;
+}
+.stree-world,
+.stree-labels,
+.stree-nodes,
+.stree-fx {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Connectors (one SVG at home, drawn outside its 1 px box): soft brown, a bought link in the branch colour. */
+.stree-lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.stree-lines path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stree-ln {
+  stroke: #c9ab84;
+  stroke-width: var(--line, 7px);
+}
+.stree-ln.fresh {
+  stroke-dasharray: 1 2;
+  animation: stree-draw 0.34s ease-out backwards;
+  animation-delay: var(--d, 0ms);
+}
+.stree-le {
+  stroke: var(--ink, #3a281c);
+  stroke-width: calc(var(--line, 7px) + 5px);
+}
+.stree-lc {
+  stroke: var(--bc);
+  stroke-width: var(--line, 7px);
+}
+
+/* Branch labels: a small tinted chip past the outer end of each branch. */
+.stree-bl {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 2px 10px 2px 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink, #3a281c);
+  background: color-mix(in srgb, var(--bc) 22%, #fffaf0);
+  border: 2px solid color-mix(in srgb, var(--bc) 45%, var(--ink, #3a281c));
+  border-radius: 999px;
+  pointer-events: none;
+}
+.stree-bl::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bc);
+  border: 1.5px solid var(--ink, #3a281c);
+}
+.stree-bl.up {
+  translate: -50% -100%;
+}
+.stree-bl.down {
+  translate: -50% 0;
+}
+.stree-bl.left {
+  translate: -100% -50%;
+}
+.stree-bl.right {
+  translate: 0 -50%;
+}
+
+/* Nodes: rounded tiles like the inventory item tiles. Not bought = cream with a muted icon; bought = a warm
+   fill in the branch colour; home = teal. --in is the inner ring, --in2 the cream band of a capstone. */
+.stree-node {
+  --s: var(--node);
+  --in: color-mix(in srgb, var(--bc) 28%, #f3e5c8);
+  --in2: 0px;
+  --lift: 0px;
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  background: radial-gradient(circle at 50% 38%, #fffaf0, #efe2c6 80%);
+  border: var(--ol) solid var(--ink, #3a281c);
+  border-radius: 13px;
+  box-shadow:
+    0 calc(var(--drop) + var(--lift)) 0 var(--ink, #3a281c),
+    inset 0 0 0 3px var(--in),
+    inset 0 0 0 var(--in2) #fffaf0b0;
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s,
+    outline-color 0.12s;
+}
+.stree-node.big,
+.stree-node.home {
+  --s: var(--big);
+  --in2: 6px;
+  border-radius: 16px;
+}
+.stree-node.on,
+.stree-node.home {
+  --in: var(--bc);
+  background: radial-gradient(
+    circle at 50% 38%,
+    color-mix(in srgb, var(--bc) 38%, #fffaf0),
+    color-mix(in srgb, var(--bc) 80%, #efe2c6) 80%
+  );
+}
+.stree-node.max {
+  --in: color-mix(in srgb, var(--bc) 70%, #fff);
+}
+.stree-ic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.stree-ic svg {
+  display: block;
+  width: 70%;
+  height: 70%;
+}
+.stree-node:not(.on, .home) .stree-ic {
+  filter: grayscale(1) opacity(0.45);
+}
+.stree-node.can:not(.on) .stree-ic {
+  filter: grayscale(0.4) opacity(0.85);
+}
+
+/* Level pips: small round dots under the tile, filled in the branch colour. */
+.stree-pips {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: calc(100% + var(--ol) + var(--drop) + 1px);
+  translate: -50% 0;
+  display: flex;
+  gap: var(--pg);
+  pointer-events: none;
+}
+.stree-pips i {
+  display: block;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 1.5px #3a281c66;
+}
+.stree-pips i.on {
+  background: var(--bc);
+  box-shadow: inset 0 0 0 1.5px var(--ink, #3a281c);
+}
+
+/* A node the miner can buy (at base, enough materials): a soft green ring that glows in and out. */
+.stree-node.can::after {
+  content: '';
+  position: absolute;
+  inset: calc((var(--ol) + 3px) * -1);
+  border: 2.5px solid var(--go);
+  border-radius: 19px;
+  box-shadow:
+    0 0 10px 1px #2fae6380,
+    inset 0 0 6px #2fae6359;
+  pointer-events: none;
+  animation: stree-glowring 1.6s ease-in-out infinite;
+}
+
+/* Hovered or selected: the tile lifts with a thicker ring; armed (the next click buys): the ring turns green. */
+.stree-node.sel {
+  --lift: 3px;
+  z-index: 1;
+  transform: translateY(-3px) scale(1.06);
+  outline: 3px solid var(--ink, #3a281c);
+  outline-offset: 3px;
+}
+.stree-node.sel::after {
+  display: none;
+}
+/* An invisible margin so the lifted tile keeps the pointer (no hover flicker at its bottom edge). */
+.stree-node.sel::before {
+  content: '';
+  position: absolute;
+  inset: -8px -8px -12px;
+}
+.stree-node.armed {
+  outline: 4px solid var(--go);
+}
+
+/* A node that just appeared pops in; a bought level pops; a refused click shakes. */
+.stree-node.fresh {
+  animation: stree-pop 0.36s cubic-bezier(0.2, 1.6, 0.45, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.stree-node.pop {
+  animation: stree-buy 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.stree-node.deny {
+  animation: stree-shake 0.3s linear;
+}
+
+/* Buy and reveal effects in the branch colour: a soft glow, a ring that grows and fades, a few sparkles. */
+.stree-glow,
+.stree-rg,
+.stree-sp {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+.stree-glow {
+  width: calc(var(--s) * 2.2);
+  height: calc(var(--s) * 2.2);
+  margin: calc(var(--s) * -1.1) 0 0 calc(var(--s) * -1.1);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--bc) 55%, #fff0) 0, #fff0 68%);
+  animation: stree-glow 0.6s ease-out forwards;
+}
+.stree-rg {
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border: 3px solid var(--bc);
+  border-radius: 16px;
+  animation: stree-ring 0.55s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+.stree-sp {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  background: color-mix(in srgb, var(--bc) 85%, var(--ink, #3a281c));
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: stree-spark 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: var(--t, 0ms);
+}
+.stree-sp.dot {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  clip-path: none;
+  border-radius: 50%;
+  background: var(--bc);
+  box-shadow: inset 0 0 0 1.5px var(--ink, #3a281c);
+}
+
+/* Tooltip: a cream card with an ink outline, like the sheets; a rounded tail points at the node. */
+.stree-tipw {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.stree-tipw.hidden {
+  display: none;
+}
+.stree-tipw.pop {
+  animation: stree-tpop 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.stree-tipw.deny {
+  animation: stree-shake 0.3s linear;
+}
+.stree-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tipw);
+  padding: 10px 12px 11px;
+  color: var(--ink, #3a281c);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  background: var(--cream, #fff6e5);
+  border: 3px solid var(--ink, #3a281c);
+  border-radius: 14px;
+  box-shadow:
+    0 4px 0 var(--ink, #3a281c),
+    0 10px 24px #3a281c40;
+}
+.stree-tip p {
+  margin: 6px 0 0;
+}
+.stree-th {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid color-mix(in srgb, var(--bc) 60%, transparent);
+}
+.stree-ti {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2.5px solid var(--ink, #3a281c);
+  border-radius: 12px;
+  background: radial-gradient(
+    circle at 50% 38%,
+    color-mix(in srgb, var(--bc) 38%, #fffaf0),
+    color-mix(in srgb, var(--bc) 75%, #efe2c6) 80%
+  );
+}
+.stree-ti svg {
+  width: 78%;
+  height: 78%;
+}
+.stree-th b {
+  display: block;
+  font-size: 17px;
+  line-height: 1.1;
+}
+.stree-lv {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft, #7a5c45);
+}
+.stree-td {
+  color: var(--ink-soft, #7a5c45);
+  font-weight: 600;
+}
+.stree-tv b {
+  color: var(--ink, #3a281c);
+}
+.stree-tg {
+  color: #1f7a54;
+  font-weight: 700;
+}
+.stree-k {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft, #7a5c45);
+}
+.stree-cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 4px;
+}
+.stree-c {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 9px 1px 3px;
+  font-weight: 700;
+  color: var(--ink, #3a281c);
+  background: #fffaf0;
+  border: 2px solid #3a281c55;
+  border-radius: 999px;
+}
+.stree-c.short {
+  color: #c2412d;
+  background: #ffefe9;
+  border-color: #c2412d;
+}
+.stree-c small {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.stree-c .stree-oi {
+  width: 20px;
+  height: 20px;
+}
+.stree-max {
+  color: color-mix(in srgb, var(--bc) 45%, var(--ink, #3a281c));
+  font-weight: 700;
+}
+.stree-tip .stree-gas {
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink-soft, #7a5c45);
+  opacity: 0.85;
+}
+.stree-tip .stree-tf {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 2px dashed #3a281c22;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.stree-tf.go {
+  color: #1f7a54;
+}
+.stree-tf.no {
+  color: #c2412d;
+}
+.stree-tail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tail, 16px);
+  height: var(--tail, 16px);
+  background: var(--cream, #fff6e5);
+  border: 0 solid var(--ink, #3a281c);
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 4px 0;
+}
+.stree-tail.up {
+  border-width: 3px 0 0 3px;
+  border-radius: 4px 0 0 0;
+}
+
+/* Phone: smaller text and corners (the view sets the smaller sizes). */
+html.phone .stree-banner {
+  font-size: 13px;
+  padding: 3px 10px;
+}
+html.phone .stree-r {
+  font-size: 12px;
+  padding: 1px 7px 1px 4px;
+}
+html.phone .stree-oi {
+  width: 18px;
+  height: 18px;
+}
+html.phone .stree-view {
+  border-width: 2.5px;
+  border-radius: 13px;
+}
+html.phone .stree-bl {
+  font-size: 10.5px;
+  padding: 1px 7px 1px 4px;
+  gap: 4px;
+}
+html.phone .stree-bl::before {
+  width: 6px;
+  height: 6px;
+}
+html.phone .stree-node {
+  border-radius: 10px;
+}
+html.phone .stree-node.big,
+html.phone .stree-node.home {
+  --in2: 4px;
+  border-radius: 12px;
+}
+html.phone .stree-node.can::after {
+  border-radius: 14px;
+}
+html.phone .stree-node.sel {
+  outline-width: 2.5px;
+  outline-offset: 2px;
+}
+html.phone .stree-node.armed {
+  outline-width: 3px;
+}
+html.phone .stree-tip {
+  font-size: 12.5px;
+  padding: 8px 10px 9px;
+}
+html.phone .stree-th {
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+html.phone .stree-ti {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+html.phone .stree-th b {
+  font-size: 15px;
+}
+html.phone .stree-tip p {
+  margin-top: 4px;
+}
+
+@keyframes stree-glowring {
+  0%,
+  100% {
+    opacity: 0.35;
+    scale: 0.97;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.03;
+  }
+}
+@keyframes stree-pop {
+  from {
+    scale: 0.2;
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes stree-buy {
+  30% {
+    scale: 1.2;
+  }
+  60% {
+    scale: 0.95;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes stree-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes stree-shake {
+  20% {
+    translate: -5px 0;
+  }
+  40% {
+    translate: 5px 0;
+  }
+  60% {
+    translate: -3px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+}
+@keyframes stree-flash {
+  30% {
+    scale: 1.06;
+    background: #ff5a4f;
+    color: #fff;
+  }
+}
+@keyframes stree-tpop {
+  from {
+    scale: 0.85;
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+}
+@keyframes stree-glow {
+  from {
+    opacity: 0.9;
+    scale: 0.6;
+  }
+  to {
+    opacity: 0;
+    scale: 1.25;
+  }
+}
+@keyframes stree-ring {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.65;
+  }
+}
+@keyframes stree-spark {
+  from {
+    translate: 0 0;
+    scale: 0.3;
+    rotate: 0deg;
+    opacity: 1;
+  }
+  35% {
+    scale: 1.1;
+    opacity: 1;
+  }
+  to {
+    translate: var(--dx) var(--dy);
+    scale: 0.4;
+    rotate: var(--r, 180deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stree-node.can::after {
+    animation: none;
+    opacity: 0.8;
+  }
+  .stree-sp,
+  .stree-glow {
+    display: none;
+  }
+  .stree-node.sel {
+    transform: none;
+  }
+}

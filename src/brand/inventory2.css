@@ -1,0 +1,1003 @@
+/* MINEAR inventory sheet, second look (folder: minear-r3f/src/brand). Imported by minear-r3f/src/menus/inventory.ts.
+   The gear page follows the layout of the theras-rpg-template equipment screen (equipment tiles around the miner, an
+   accessory row, an ability row, big highlight stats) and the Cart page is one grid of everything carried. The look
+   stays MINEAR's: Fredoka, cream sheet, dark ink outlines, rounded .itile tiles (minear-r3f/src/brand/game.css).
+   Every rule is scoped under .sheet.inv (or #inv for the pop-up), one step more specific than game.css. */
+
+/* ---- gear page ---------------------------------------------------------------------------------------------- */
+
+.sheet.inv .gearpage {
+  grid-template-columns: 548px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.sheet.inv .equip {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 12px;
+  background: #fffaf0;
+  border: 2.5px solid #3a281c2e;
+  border-radius: 16px;
+}
+
+.sheet.inv .eqdoll {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) 92px;
+  gap: 12px;
+  height: 316px;
+}
+
+.sheet.inv .eqcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 2px;
+}
+
+.sheet.inv .eqcol.r {
+  justify-content: space-around;
+}
+
+/* an equipment slot: a big tile, its name under it, the red mark when the Cart holds a better piece */
+.sheet.inv .eqslot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.sheet.inv .eqslot.big .itile {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+}
+
+.sheet.inv .eqslot .itile {
+  transition: transform 0.12s;
+}
+
+.sheet.inv .eqslot:hover .itile {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.sheet.inv .eqslot .itile.empty svg {
+  width: 62%;
+  height: 62%;
+}
+
+.sheet.inv .eqslot .cap {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .eqslot .mark {
+  position: absolute;
+  z-index: 2;
+  top: -6px;
+  right: -1px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  animation: invMark 1.3s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.sheet.inv .eqslot .mark::after {
+  content: '!';
+  color: #fff;
+  font: 700 11px/1 'Fredoka', system-ui, sans-serif;
+}
+
+.sheet.inv .eqslot.acc .mark {
+  top: -7px;
+  right: -7px;
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes invMark {
+  to {
+    transform: scale(1.15);
+  }
+}
+
+.sheet.inv .eqdoll .portrait {
+  height: 100%;
+}
+
+.sheet.inv .eqrow .lbl {
+  margin: 0 0 6px;
+}
+
+.sheet.inv .eqrow .lbl span {
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+/* accessories: the two charm slots, then the locked ones */
+.sheet.inv .accrow {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet.inv .eqslot.acc .itile,
+.sheet.inv .acclock .itile {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+}
+
+.sheet.inv .acclock {
+  cursor: default;
+}
+
+.sheet.inv .acclock .itile.locked,
+.sheet.inv .abslot .itile.locked {
+  box-shadow: none;
+  background: #3a281c0f;
+  border: 2.5px dashed #3a281c3d;
+}
+
+.sheet.inv .acclock .itile.locked svg,
+.sheet.inv .abslot .itile.locked svg {
+  width: 22px;
+  height: 22px;
+  opacity: 0.4;
+}
+
+/* ability: the belt slots, keys 1-4 as the column heads */
+.sheet.inv .abrow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sheet.inv .abslot {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 5px 4px 5px;
+  background: #3a281c0d;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.sheet.inv .abslot kbd {
+  padding: 0 8px;
+  background: var(--cream);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--ink);
+  font: 700 12px/1.35 'Fredoka', system-ui, sans-serif;
+}
+
+.sheet.inv .abslot .itile {
+  width: 54px;
+  height: 54px;
+  transition: transform 0.12s;
+}
+
+.sheet.inv .abslot[data-b]:hover .itile {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.sheet.inv .abslot .cap {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .abslot.lockd {
+  cursor: default;
+  opacity: 0.65;
+}
+
+/* ---- gear page: status ------------------------------------------------------------------------------------ */
+
+.sheet.inv .status {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sheet.inv .status > .lbl {
+  margin: 0;
+}
+
+.sheet.inv .hstats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sheet.inv .hstat {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 1px;
+  min-width: 0;
+  padding: 8px 4px 7px;
+  background: linear-gradient(#fffaf0, #f6ead2);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.sheet.inv .hstat:hover {
+  background: linear-gradient(#fffaf0, #ffe9b8);
+}
+
+.sheet.inv .hstat svg {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 2px;
+}
+
+.sheet.inv .hstat b {
+  font-size: 23px;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sheet.inv .hstat.boost b {
+  color: #23914a;
+}
+
+.sheet.inv .hstat span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .statlist {
+  display: grid;
+  gap: 6px;
+}
+
+/* a stat group: a header row (icon, name, one-line summary, chevron), the rows open under it */
+.sheet.inv .sacc {
+  background: #fffaf0;
+  border: 2.5px solid #3a281c2e;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sheet.inv .sacc.open {
+  border-color: #3a281c5c;
+}
+
+.sheet.inv .sahead {
+  display: grid;
+  grid-template-columns: 24px auto minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px 6px 8px;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  transform: none;
+  transition: background 0.12s;
+}
+
+.sheet.inv .sahead:hover {
+  background: #ffc23d26;
+}
+
+.sheet.inv .sahead:active {
+  box-shadow: none;
+  transform: none;
+}
+
+.sheet.inv .sahead svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sheet.inv .sahead > b {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sheet.inv .sasum {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .sasum b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet.inv .sahead .chev {
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  justify-self: center;
+  border-right: 3px solid var(--ink);
+  border-bottom: 3px solid var(--ink);
+  transform: rotate(45deg);
+  transition: transform 0.18s;
+}
+
+.sheet.inv .sacc.open .chev {
+  margin-top: 4px;
+  transform: rotate(225deg);
+}
+
+.sheet.inv .sabody {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.18s ease;
+}
+
+.sheet.inv .sacc.open .sabody {
+  grid-template-rows: 1fr;
+}
+
+.sheet.inv .sabody > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sheet.inv .sacc.open .sabody > div {
+  padding: 2px 8px 7px;
+  border-top: 2px dashed #3a281c1f;
+}
+
+.sheet.inv .statlist .srow2 {
+  padding: 2px 4px;
+}
+
+/* ---- the chooser pop-up (an equipment slot's spare gear, a belt slot's supplies) ---------------------------- */
+
+#inv .ctx.chooser {
+  width: 304px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+}
+
+#inv .ctx .chrows {
+  display: grid;
+  gap: 5px;
+}
+
+#inv .ctx button.chrow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px 5px 5px;
+  background: #2b2445;
+  color: #f4ecff;
+  border: 2.5px solid #0c0a18;
+  border-left: 5px solid var(--tc, #fff1d6);
+  border-radius: 10px;
+  text-shadow: none;
+  text-align: left;
+}
+
+#inv .ctx button.chrow:hover {
+  background: #3a3160;
+}
+
+#inv .ctx .chrow .itile {
+  width: 40px;
+  height: 40px;
+  border-width: 2px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 2px var(--tc, #e9eef5);
+}
+
+#inv .ctx .chrow .itile.fresh::after {
+  top: -6px;
+  right: -8px;
+  padding: 0 3px;
+  font-size: 8px;
+}
+
+#inv .ctx .chnm {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+#inv .ctx .chnm b {
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--tc, #fff);
+}
+
+#inv .ctx .chnm small {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b9add6;
+}
+
+#inv .ctx .chd {
+  display: grid;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+#inv .ctx .chd i {
+  font-style: normal;
+  color: #b9add6;
+}
+
+#inv .ctx .chd i.inc {
+  color: #7be08f;
+}
+
+#inv .ctx .chd i.dec {
+  color: #ff8a80;
+}
+
+#inv .ctx .chrow em.up {
+  padding: 1px 6px;
+  background: var(--red);
+  color: #fff;
+  border: 2px solid #0c0a18;
+  border-radius: 999px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+#inv .ctx .chnote {
+  margin: 0 2px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #c9bfe6;
+}
+
+#inv .tip .tline.better {
+  color: #ff9a8f;
+  font-weight: 700;
+}
+
+/* ---- Cart page ------------------------------------------------------------------------------------------ */
+
+.sheet.inv .packpage {
+  grid-template-columns: auto;
+  justify-content: center;
+  align-items: start;
+  padding-top: 2px;
+}
+
+.sheet.inv .cart {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px;
+  color: #fff6e5;
+  background: radial-gradient(at 50% 18%, #c98d5a, #9c6437 72%);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.sheet.inv .cart-head {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 6px 14px 8px 8px;
+  color: var(--ink);
+  background: #fffaf0;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.sheet.inv .cart-head.full {
+  border-color: #d8413a;
+  box-shadow: 0 3px 0 #d8413a;
+}
+
+.sheet.inv .cart-art svg {
+  display: block;
+  width: 150px;
+  height: auto;
+}
+
+.sheet.inv .cart-info {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sheet.inv .cart-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.sheet.inv .cart-title b {
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+.sheet.inv .cart-title span {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet.inv .cart-title em {
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .cart-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.sheet.inv .cart-kinds span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  border: 2px solid #3a281c29;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.sheet.inv .cart-kinds i {
+  width: 10px;
+  height: 10px;
+  background: var(--tc);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.sheet.inv .cart-kinds b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet.inv .cart-kinds span.full {
+  background: #ffe6e2;
+  border-color: #d8413a;
+}
+
+.sheet.inv .cart-kinds span.full b {
+  color: #c8392f;
+}
+
+.sheet.inv .cart-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 6), 72px);
+  justify-content: center;
+  gap: 10px;
+}
+
+.sheet.inv .cart-grid .itile {
+  width: 72px;
+  height: 72px;
+}
+
+.sheet.inv .cart-grid .itile.none {
+  background: #3a281c47;
+  border-color: #fff0dc73;
+}
+
+.sheet.inv .cart-grid .itile.locked {
+  box-shadow: none;
+  background: #28180e73;
+  border: 2.5px dashed #fff0dc40;
+}
+
+.sheet.inv .cart-grid .itile.locked svg {
+  width: 26px;
+  height: 26px;
+  opacity: 0.45;
+}
+
+.sheet.inv .cart-grid .itile[data-i] {
+  cursor: context-menu;
+}
+
+.sheet.inv .cart-grid .itile[data-uid],
+.sheet.inv .cart-grid .itile[data-sup] {
+  cursor: pointer;
+}
+
+.sheet.inv .cart-grid .itile:is([data-i], [data-uid], [data-sup], [data-loose], [data-ore], [data-pocket]):hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.sheet.inv .cart-grid .itile.ore {
+  box-shadow: 0 3px 0 var(--ink), inset 0 0 0 3px var(--tc);
+}
+
+/* the key of a supply that is on the belt */
+.sheet.inv .cart-grid .onbelt {
+  position: absolute;
+  top: -7px;
+  left: -6px;
+  padding: 0 5px;
+  background: var(--cream);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--ink);
+  font: 700 11px/1.35 'Fredoka', system-ui, sans-serif;
+}
+
+.sheet.inv .cart-hint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: #ffe9cc;
+}
+
+/* ---- touch ------------------------------------------------------------------------------------------------ */
+
+html.touch .sheet.inv .hstat.picked {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+}
+
+html.touch .sheet.inv .eqslot,
+html.touch .sheet.inv .abslot,
+html.touch .sheet.inv .hstat {
+  cursor: pointer;
+}
+
+/* ---- phone: the sheet fills the screen; each column scrolls ---------------------------------------------- */
+
+html.phone .sheet.inv .gearpage {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+html.phone .sheet.inv .equip,
+html.phone .sheet.inv .status {
+  max-height: calc(100dvh - var(--st) - var(--sb) - 64px);
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+html.phone .sheet.inv .equip {
+  gap: 6px;
+  padding: 7px 8px;
+  border-width: 2px;
+  border-radius: 12px;
+}
+
+html.phone .sheet.inv .eqdoll {
+  grid-template-columns: 58px minmax(0, 1fr) 58px;
+  gap: 6px;
+  height: 222px;
+}
+
+html.phone .sheet.inv .eqslot {
+  gap: 1px;
+}
+
+html.phone .sheet.inv .eqslot.big .itile {
+  width: 50px;
+  height: 50px;
+  border-width: 2.5px;
+  border-radius: 11px;
+}
+
+html.phone .sheet.inv .eqslot .cap {
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+}
+
+html.phone .sheet.inv .eqslot .mark {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+html.phone .sheet.inv .eqslot .mark::after {
+  font-size: 9px;
+}
+
+html.phone .sheet.inv .accrow {
+  gap: 5px;
+}
+
+html.phone .sheet.inv .eqslot.acc .itile,
+html.phone .sheet.inv .acclock .itile {
+  width: 36px;
+  height: 36px;
+  border-width: 2px;
+  border-radius: 9px;
+}
+
+html.phone .sheet.inv .abrow {
+  gap: 5px;
+}
+
+html.phone .sheet.inv .abslot {
+  gap: 2px;
+  padding: 4px 2px;
+}
+
+html.phone .sheet.inv .abslot kbd {
+  padding: 0 5px;
+  font-size: 10px;
+}
+
+html.phone .sheet.inv .abslot .itile {
+  width: 40px;
+  height: 40px;
+  border-width: 2.5px;
+  border-radius: 10px;
+}
+
+html.phone .sheet.inv .abslot .cap {
+  font-size: 9.5px;
+}
+
+html.phone .sheet.inv .status {
+  gap: 5px;
+}
+
+html.phone .sheet.inv .hstats {
+  gap: 5px;
+}
+
+html.phone .sheet.inv .hstat {
+  padding: 4px 2px 4px;
+  border-width: 2px;
+  border-radius: 10px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+html.phone .sheet.inv .hstat svg {
+  width: 22px;
+  height: 22px;
+}
+
+html.phone .sheet.inv .hstat b {
+  font-size: 16px;
+}
+
+html.phone .sheet.inv .hstat span {
+  font-size: 7.5px;
+  letter-spacing: 0.04em;
+}
+
+html.phone .sheet.inv .statlist {
+  gap: 4px;
+}
+
+html.phone .sheet.inv .sacc {
+  border-width: 2px;
+  border-radius: 10px;
+}
+
+html.phone .sheet.inv .sahead {
+  grid-template-columns: 18px auto minmax(0, 1fr) 12px;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
+}
+
+html.phone .sheet.inv .sahead svg {
+  width: 18px;
+  height: 18px;
+}
+
+html.phone .sheet.inv .sahead > b {
+  font-size: 10px;
+}
+
+html.phone .sheet.inv .sasum {
+  font-size: 10.5px;
+}
+
+html.phone .sheet.inv .packpage {
+  max-height: calc(100dvh - var(--st) - var(--sb) - 64px);
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+html.phone .sheet.inv .cart {
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border-width: 2.5px;
+  border-radius: 14px;
+}
+
+html.phone .sheet.inv .cart-head {
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 10px 5px 6px;
+  border-width: 2px;
+}
+
+html.phone .sheet.inv .cart-art svg {
+  width: 92px;
+}
+
+html.phone .sheet.inv .cart-title b {
+  font-size: 18px;
+}
+
+html.phone .sheet.inv .cart-title span {
+  font-size: 15px;
+}
+
+html.phone .sheet.inv .cart-kinds span {
+  font-size: 10.5px;
+}
+
+html.phone .sheet.inv .cart-grid {
+  grid-template-columns: repeat(var(--cols, 6), 46px);
+  gap: 6px;
+}
+
+html.phone .sheet.inv .cart-grid .itile {
+  width: 46px;
+  height: 46px;
+  border-width: 2.5px;
+  border-radius: 10px;
+}
+
+html.phone .sheet.inv .cart-grid .itile .qty {
+  font-size: 12px;
+  bottom: 3px;
+  right: 3px;
+}
+
+html.phone .sheet.inv .cart-hint {
+  font-size: 11px;
+}
+
+/* ---- slot list page (user, 2026-11-14): a click on an equipment, accessory or belt slot shows that slot's list
+   in place of the doll; Back returns. Markup: minear-r3f/src/menus/inventory.ts renderSlotView ---- */
+.sheet.inv .slotview { display: none; }
+.sheet.inv[data-slotview] .gearpage .equip { display: none; }
+.sheet.inv[data-slotview] .slotview {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 560px;
+  min-height: 0;
+  padding: 12px 14px;
+  background: #fffaf0;
+  border: 2.5px solid #3a281c2e;
+  border-radius: 16px;
+}
+.sheet.inv .slotview .lbl small { margin-left: 6px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0; }
+.sheet.inv .sv-head { display: flex; align-items: center; gap: 12px; }
+.sheet.inv .sv-head > b { font-size: 24px; line-height: 1.1; }
+.sheet.inv .sv-head > small { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.sheet.inv .sv-btn {
+  flex: none;
+  padding: 6px 14px;
+  font: 700 15px/1.2 'Fredoka', system-ui, sans-serif;
+  color: var(--ink);
+  text-shadow: none;
+  background: var(--cream-2);
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--ink);
+  cursor: pointer;
+}
+.sheet.inv .sv-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.sheet.inv .sv-btn.back { padding: 6px 16px; font-size: 16px; }
+.sheet.inv .sv-btn.go { color: #fff; text-shadow: 0 1px 0 #0004; background: #3fb45a; }
+.sheet.inv .sv-btn.danger { color: #fff; text-shadow: 0 1px 0 #0004; background: #e2484f; }
+/* a plain card: the rarity colour is only on the item box (theras-rpg-template list, user 2026-11-14) */
+.sheet.inv .sv-worn,
+.sheet.inv .sv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  background: #fffdf7;
+  border: 2.5px solid #3a281c2e;
+  border-radius: 14px;
+}
+.sheet.inv .sv-row.equipped { background: #dff3d6; border-color: #2fb55a99; }
+.sheet.inv .sv-title { display: block; font-size: 17px; line-height: 1.2; color: var(--ink); }
+.sheet.inv .sv-title > span { margin-right: 2px; }
+.sheet.inv .sv-title .stars { font-size: 15px; vertical-align: -0.15em; white-space: nowrap; }
+.sheet.inv .sv-title .stars svg.on { fill: var(--tc); }
+.sheet.inv .sv-title .stars svg.off { fill: #5a4a3c; stroke: var(--ink); }
+.sheet.inv .sv-tag {
+  flex: none;
+  align-self: flex-start;
+  padding: 1px 9px;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+.sheet.inv .sv-tag.best { background: #f08a2a; }
+.sheet.inv .sv-tag.eq { background: #2f9a4a; }
+.sheet.inv .sv-nm .chd i.inc::before { content: '↑ '; }
+.sheet.inv .sv-nm .chd i.dec::before { content: '↓ '; }
+.sheet.inv .sv-worn.none { justify-content: center; padding: 18px; font-weight: 600; color: var(--ink-soft); border-style: dashed; }
+.sheet.inv .sv-worn .itile,
+.sheet.inv .sv-row .itile { width: 60px; height: 60px; flex: none; }
+.sheet.inv .sv-nm { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.sheet.inv .sv-nm b { font-size: 17px; line-height: 1.15; }
+.sheet.inv .sv-nm small { font-size: 13px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.sheet.inv .sv-nm small .stars { font-size: 12px; margin-right: 3px; }
+.sheet.inv .sv-st { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.sheet.inv .sv-nm .chd { display: flex; flex-wrap: wrap; gap: 0 10px; }
+.sheet.inv .sv-nm .chd i { font-style: normal; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.sheet.inv .sv-nm .chd i.inc { color: #23914a; }
+.sheet.inv .sv-nm .chd i.dec { color: #c2412d; }
+.sheet.inv .sv-acts { display: flex; flex-direction: column; gap: 6px; }
+.sheet.inv .sv-up {
+  flex: none;
+  padding: 1px 8px;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #2fb55a;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+}
+.sheet.inv .sv-list { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 4px 0; }
+.sheet.inv .sv-empty { margin: 8px 0; font-weight: 600; color: var(--ink-soft); }
+html.phone .sheet.inv[data-slotview] .slotview { height: auto; max-height: 70dvh; }
+/* the rows show the stars on the rarity line, so the tile does not repeat them */
+.sheet.inv .slotview .itile > .stars.tile { display: none; }
+.sheet.inv .slotview .itile > img,
+.sheet.inv .slotview .itile > svg { translate: none; }

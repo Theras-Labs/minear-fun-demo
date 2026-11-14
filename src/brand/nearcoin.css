@@ -1,0 +1,26 @@
+/* MINEAR: the coin logo as a NEAR coin, everywhere (folder: minear-r3f/src/brand). Visual only: the game
+   still counts coins; minear-r3f/src/economy/nearDisplay.ts converts what the merchant dialog shows.
+   Imported once from minear-r3f/src/main.tsx. It restyles every `<i class="coin">` icon: a dark disc, the
+   white NEAR "N" mark and a thin green ring. The sizes and the ink outline stay as minear-r3f/src/brand/game.css
+   sets them (.coin 30px, .coin.sm 18px, the wallet, toast, loot and phone rules); only the face changes.
+   `:root .coin` outranks game.css's `.coin`, so neither game.css nor minear.css is edited. */
+:root .coin {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 90'%3E%3Cpath fill='%23fff' d='M72.2 4.6L53.4 32.5c-1.3 1.9 1.2 4.2 3 2.6L74.9 19c.5-.4 1.2-.1 1.2.6v50.3c0 .7-.9 1-1.3.5l-56-67C17 1.2 14.4 0 11.5 0h-2C4.3 0 0 4.3 0 9.6v70.8C0 85.7 4.3 90 9.6 90c3.3 0 6.4-1.7 8.2-4.6l18.8-27.9c1.3-1.9-1.2-4.2-3-2.6L15.1 70.8c-.5.4-1.2.1-1.2-.6V20.1c0-.7.9-1 1.3-.5l56 67c1.8 2.2 4.5 3.4 7.3 3.4h2c5.3 0 9.6-4.3 9.6-9.6V9.6c0-5.3-4.3-9.6-9.6-9.6-3.4 0-6.5 1.7-8.3 4.6z'/%3E%3C/svg%3E")
+      center / 50% 50% no-repeat,
+    radial-gradient(circle, #0000 0 70%, #00ec97c0 72% 80%, #0000 82%),
+    radial-gradient(circle at 34% 28%, #5a5a66 0, #24242b 46%, #0c0c10 100%);
+  border-color: var(--ink, #3a281c);
+  box-shadow: inset 0 -2px 0 #00000066, inset 0 1px 0 #ffffff26;
+}
+/* the HUD's tiny phone coin: a bolder N reads better at 12px */
+html.phone:root #wallet .coin {
+  background-size: 60% 60%, auto, auto;
+}
+/* inline amounts written by the merchant dialog: icon, number, unit */
+.near-amt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}

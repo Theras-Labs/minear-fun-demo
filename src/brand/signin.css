@@ -1,0 +1,127 @@
+/* The sign-in sheet (minear-r3f/src/menus/signIn.ts): MINEAR's cream and ink look, above every other sheet. */
+#signin {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #140c08a6;
+  pointer-events: auto;
+  user-select: text;
+}
+#signin.hidden {
+  display: none;
+}
+#signin .si-sheet {
+  width: min(420px, 100%);
+  padding: 16px 20px 14px;
+  background: var(--cream, #fff6e5);
+  border: 3px solid var(--ink, #3a281c);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--ink, #3a281c), 0 18px 30px #00000059;
+  color: var(--ink, #3a281c);
+  display: grid;
+  gap: 10px;
+}
+#signin header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#signin h2 {
+  margin: 0;
+  font-size: 24px;
+}
+#signin .si-x {
+  padding: 2px 10px;
+  font-size: 16px;
+  color: var(--ink, #3a281c);
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+#signin p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+#signin .si-why {
+  font-weight: 600;
+  font-size: 15px;
+}
+#signin .soft,
+#signin .si-fine {
+  color: var(--ink-soft, #7a5c45);
+  font-size: 12.5px;
+}
+#signin .si-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 19px;
+  color: #1f1f1f;
+  text-shadow: none;
+  background: #ffffff;
+}
+#signin .si-google svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#signin .si-wallet {
+  width: 100%;
+  padding: 9px 16px;
+  font-size: 16px;
+  color: #f4f7ff;
+  text-shadow: none;
+  background: #1d1f2b;
+}
+#signin .si-or {
+  text-align: center;
+  color: var(--ink-soft, #7a5c45);
+  font-size: 12.5px;
+}
+#signin .si-google:disabled,
+#signin .si-wallet:disabled,
+#signin .si-go:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+#signin .si-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 2px solid var(--ink, #3a281c);
+  border-radius: 12px;
+  font-size: 15px;
+}
+#signin .si-name input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  font: inherit;
+  color: inherit;
+  background: none;
+}
+#signin .si-name span {
+  color: var(--ink-soft, #7a5c45);
+  white-space: nowrap;
+}
+#signin .si-go {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 18px;
+}
+#signin .si-msg {
+  color: #0d6e4a;
+}
+#signin .si-msg.err {
+  color: #b3261e;
+}

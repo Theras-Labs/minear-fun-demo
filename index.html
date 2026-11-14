@@ -1,0 +1,341 @@
+<!doctype html>
+<!-- MINEAR: the page shell. The game code is in src/ (React Three Fiber). -->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MINEAR</title>
+    <meta name="theme-color" content="#1d1838" />
+    <link rel="icon" type="image/svg+xml" href="/minear-icon.svg" />
+    <link rel="apple-touch-icon" href="/minear-icon.svg" />
+    <!-- (a phone's home screen: the game opens without the browser around it; computers ignore these) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MINEAR" />
+    <link rel="preload" as="image" href="/minear-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+    
+    
+    <link rel="stylesheet" href="/src/brand/game.css" />
+    <!-- the MINEAR look for the loading screen and the lobby (overrides the rules above) -->
+    <link rel="stylesheet" href="/src/brand/minear.css" />
+    <link rel="stylesheet" href="/src/base/base.css" />
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+  <body class="title">
+    <!-- up from the first paint (before any script has loaded) until the world is built and warmed;
+         src/game/loading.ts sets the width of .lbar i and the text of .ltext -->
+    <div id="loading">
+      <div class="lsky"></div>
+      <div class="lglow"></div>
+      <img class="llogo" src="/minear-logo.svg" alt="MINEAR" width="1000" height="580" />
+      <div class="lsoil">
+        <div class="lbar"><i><b class="lmole"></b></i></div>
+        <p class="ltext">Loading…</p>
+      </div>
+    </div>
+    <!-- the R3F Canvas mounts here as div#game (styled by #game in src/brand/game.css) -->
+    <div id="root"></div>
+    <div id="ui">
+      <div id="vignette"></div>
+      <div id="hurtfx"></div>
+      <div id="flash"></div>
+      <div id="foebars"></div>
+      <div id="floaters"></div>
+      <div id="nametags"></div>
+      <div id="chat">
+        <div id="chat-log"></div>
+        <input id="chat-input" maxlength="200" autocomplete="off" spellcheck="false" placeholder="Say something… Enter sends, Esc closes" />
+      </div>
+      <div id="ko"><b>Knocked out</b><span>Everything you carried lies where you fell…</span></div>
+      <!-- back where you left off: dark while the land comes in around you -->
+      <div id="back"><b>Back where you left off</b><span></span></div>
+
+      <div id="crosshair"><span class="ring"></span><span class="dot"></span></div>
+
+      <!-- the top left: one see-through panel: Fortune and who you may fight (a thin band each, always
+           there), then coins, gems and depth in a row -->
+      <div id="wallet">
+        <div class="fort" title="Fortune: rarer cards at the Wellspring, finer finds. It builds underground (faster the deeper), fades slowly up top, and a knockout loses it. The worm and the Lost come for it."><i class="ic"></i><span class="k">Fortune</span><b>+0%</b></div>
+        <div class="pvp" title="The levels of the miners you can fight here (a wider range the deeper you go)"><i class="ic">⚔</i><span class="k">PvP</span><b>lv 1–4</b></div>
+        <div class="stats">
+          <div class="hrow" id="coins" title="Coins"><i class="coin"></i><b>0</b></div>
+          <div class="hrow" id="crystals" title="Gems in your cart"><i class="gemi"></i><b>0/0</b></div>
+          <div class="hrow" id="depth" title="Depth"><svg class="hic" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5" fill="none" stroke="#3a281c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20.5h16" stroke="#9a7650" stroke-width="3" stroke-linecap="round"/></svg><span class="now"><b>0</b><small>m</small></span></div>
+        </div>
+      </div>
+      <div id="bossbar"><b>THE WORM</b><div class="bar"><i></i><s></s></div></div>
+      <!-- the way you're facing: a strip of headings across the top (and where home and your satchel are) -->
+      <div id="compass"><div class="band"><div class="strip"></div><i class="pip home"></i><i class="pip loot"></i><i class="pip beast"></i></div><i class="caret"></i><b class="deg">0°</b></div>
+
+      <div id="goal" class="card">
+        <div class="head"><label>Requests</label><span class="reward"></span></div>
+        <div class="text"></div>
+        <div class="bar"><i></i></div>
+        <div class="count"></div>
+      </div>
+
+      <!-- the jetpack's fuel: a ring low by the miner's left (clear of the crosshair), only while it's being spent or filling back up -->
+      <div id="jet"><svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="17"></circle><circle class="fill" cx="22" cy="22" r="17"></circle></svg></div>
+
+      <!-- the bottom middle: a hint when there is one, then the bar: Tab gear, the belt (1-4), B cart, jetpack, base, slam -->
+      <div id="dock">
+        <div id="hint"></div>
+        <!-- what's working on you (a Flask of Strength, Fortune Cookies): an icon each, its ring running down -->
+        <div id="buffs"></div>
+        <div id="vitals">
+          <span class="key"><kbd>Tab</kbd> gear <span class="new"></span></span>
+          <!-- MINEAR: health is hidden for now (it may merge into claw endurance); the belt (quick items, keys
+               1-4) takes its place. Only the open slots take items (src/state/belt.ts), the rest show a lock. -->
+          <div id="hp" class="bar hp" hidden><s></s><i></i><b>100</b></div>
+          <div id="belt">
+            <div class="bslot"><kbd>1</kbd><span class="ic"></span><b></b></div>
+            <div class="bslot"><kbd>2</kbd><span class="ic"></span><b></b></div>
+            <div class="bslot"><kbd>3</kbd><span class="ic"></span><b></b></div>
+            <div class="bslot"><kbd>4</kbd><span class="ic"></span><b></b></div>
+          </div>
+          <span class="key"><kbd>B</kbd> cart</span>
+          <!-- MINEAR: take the jetpack off or put it back on (src/game/jetpackToggle.ts) -->
+          <button id="jetbtn" type="button" title="Jetpack on/off (J)" aria-pressed="true"><kbd>J</kbd> jetpack <b>ON</b></button>
+          <!-- MINEAR: finish the mining trip: see what it found, the mine resets (src/base/backToBase.ts) -->
+          <button id="homebtn" type="button" title="Finish mining trip (H): see what you found, the mine resets" hidden><kbd>H</kbd> finish trip</button>
+          <!-- the Burrow Slam: a ring that fills as you fight; full, E brings up where to land it -->
+          <div id="ult" title="Burrow Slam: fighting charges it. Press E, then click where to land"><kbd>E</kbd><span class="ic"><svg viewBox="0 0 48 48"><g transform="rotate(90 24 22) translate(0 -3)"><path d="M20 13.5 C29 9 37 10.5 43 16 C37 18.5 30 19.5 22 19.5 Z" fill="#fff1d6" stroke="#3a281c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M22 21.5 C31 19.5 39 21.5 45 26 C39 28.5 32 30 22 29 Z" fill="#fff1d6" stroke="#3a281c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M20 30.5 C29 30.5 37 32.5 42 38 C35 40 28 40 20 37 Z" fill="#fff1d6" stroke="#3a281c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><ellipse cx="15" cy="25" rx="10" ry="12.5" fill="#c98b5a" stroke="#3a281c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><ellipse cx="13" cy="26" rx="4.5" ry="6" fill="#f2b49a"/></g><path d="M6 43h36" stroke="#e8dcc4" stroke-width="3" stroke-linecap="round"/><path d="M11 37l-4-3M37 37l4-3M15 31l-5-2M33 31l5-2" stroke="#ffd36a" stroke-width="2.6" stroke-linecap="round"/></svg></span></div>
+        </div>
+      </div>
+
+      <div id="home-marker" class="marker"><div class="arrow">▲</div><span>HOME</span><em>0m</em></div>
+      <div id="loot-marker" class="marker"><div class="arrow">▲</div><span>YOUR SATCHEL</span><em>0m</em></div>
+
+      <!-- the tutorial: what to do now and what to press (src/game/tutorial.ts), and an arrow to where -->
+      <div id="coach"><div class="pips"></div><b class="say"></b><div class="how"></div><div class="nudge"></div><em class="skip"></em></div>
+      <div id="tut-mark"><i class="arrow"></i><em></em></div>
+
+      <div id="toasts"></div>
+      <!-- what the Stranger says (and the four souls: brought, carried, still out there) -->
+      <div id="talk"><b class="who">The Stranger</b><p class="line"></p><div class="souls"><i></i><i></i><i></i><i></i></div></div>
+      <div id="banner"><b></b><span></span></div>
+
+      <div id="building" class="modal hidden">
+        <div class="sheet building">
+          <header>
+            <div class="crest"></div>
+            <div class="titles"><h2></h2><p class="sub"></p><nav class="tabs"></nav></div>
+            <div class="wallet">
+              <span class="pill small"><i class="coin sm"></i><b data-coins>0</b></span>
+              <span class="pill small"><i class="die sm"></i><b data-dice>0</b></span>
+            </div>
+            <button class="ghost close" type="button" title="Close (E / Esc)">✕</button>
+          </header>
+          <div class="content"></div>
+        </div>
+        <div class="fx"></div>
+      </div>
+
+      <div id="shatter" class="hidden">
+        <div class="bg"></div>
+        <header>
+          <div class="titles"><h2>The Wellspring</h2></div>
+          <div class="res">
+            <span class="pill small coins" title="Coins"><i class="coin sm"></i><b>0</b></span>
+            <span class="pill small dice" title="Reroll dice"><i class="die sm"></i><b>0</b></span>
+            <span class="pill small dust" title="Dead Dust: when you level up, Banish a card and its skill never comes up again" style="display: none"><span class="ic"></span><b>0</b></span>
+            <span class="pill small gifts" title="Your level"><i class="star sm"></i><b>0</b></span>
+          </div>
+          <button class="ghost close" type="button" title="Close (Esc)">✕</button>
+        </header>
+        <div class="xp"><b class="lv">Level 1</b><div class="track"><i class="fill"></i></div><span class="num">0 / 30</span></div>
+        <div class="stage">
+          <div class="rays"></div>
+          <div class="crystal"></div>
+          <div class="cards"></div>
+        </div>
+        <div class="cinfo"></div>
+        <div class="actions">
+          <button class="all" type="button">Send all</button>
+          <button class="reroll" type="button"></button>
+          <button class="banishbtn" type="button" title="Dead Dust: pick a card, and its skill never comes up again (B)" style="display: none"></button>
+          <button class="skip ghost" type="button"></button>
+        </div>
+        <div class="tray"></div>
+        <!-- how to leave (E, the key that opened it; a tap on a phone) -->
+        <button class="leave" type="button"><span class="k">Press <kbd>E</kbd> to exit</span><span class="t">Tap to exit</span></button>
+        <canvas class="fxc"></canvas>
+        <div class="flash"></div>
+      </div>
+
+      <div id="inv" class="hidden">
+        <div class="sheet inv" data-page="gear">
+          <header>
+            <h2>Miner</h2>
+            <nav class="tabs">
+              <button type="button" data-page="gear" title="Gear &amp; stats (1)"><svg viewBox="0 0 48 48"><path d="M8 30 C8 16 16 9 24 9 C32 9 40 16 40 30 Z" fill="#ffb23f" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><path d="M4 30 H44 V35 H4 Z" fill="#e39a14" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="20" r="4" fill="#fff6c8" stroke="#3a281c" stroke-width="2.5"/></svg>Gear<i class="tbadge" data-newgear></i></button>
+              <button type="button" data-page="pack" title="Cart (2 or B)"><svg viewBox="0 0 48 48"><path d="M27 19 C26 13 32 10 36 13 C40 12 43 16 42 19 Z" fill="#9a7650" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><path d="M20 3 L28 8 L28 16 L20 21 L12 16 L12 8 Z" fill="#5fb4ff" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><circle cx="16" cy="39" r="4.5" fill="#5a4636" stroke="#3a281c" stroke-width="3"/><circle cx="32" cy="39" r="4.5" fill="#5a4636" stroke="#3a281c" stroke-width="3"/><path d="M7 23 H41 L37 36 H11 Z" fill="#c98b5a" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><rect x="4" y="17" width="40" height="7" rx="3" fill="#8d97a5" stroke="#3a281c" stroke-width="3"/></svg>Cart<i class="tcount" data-packbadge title="Gem slots in use"></i></button>
+              <button type="button" data-page="skills" title="Skills (3 or K)"><svg viewBox="0 0 48 48"><path d="M24 4 C26 17 31 22 44 24 C31 26 26 31 24 44 C22 31 17 26 4 24 C17 22 22 17 24 4 Z" fill="#b98cff" stroke="#3a281c" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="24" r="4.5" fill="#fff4c4"/></svg>Skills</button>
+            </nav>
+            <div class="res">
+              <span class="pill small" title="Coins"><i class="coin sm"></i><b data-coins>0</b></span>
+              <span class="pill small" title="Reroll dice"><i class="die sm"></i><b data-dice>0</b></span>
+              <span class="pill small" title="Gems (carried + waiting at the Wellspring)"><i class="gemi sm"></i><b data-crystals>0</b></span>
+            </div>
+            <button class="ghost close" type="button" title="Close (Tab)">✕</button>
+          </header>
+          <!-- MINEAR gear page (src/menus/inventory.ts): the equipment slots around the portrait, the accessories
+               (the charms), the ability row (the belt, keys 1-4); beside it the status (highlight stats, stat groups) -->
+          <section class="page gearpage">
+            <div class="equip">
+              <div class="eqdoll">
+                <div class="eqcol l"></div>
+                <div class="portrait"><div class="lvl"><span>LEVEL</span><b data-lvl>0</b></div><div class="power"><span>POWER</span><b data-power>0</b></div></div>
+                <div class="eqcol r"></div>
+              </div>
+              <div class="eqrow">
+                <div class="lbl">ACCESSORIES <span data-acccount></span></div>
+                <div class="accrow"></div>
+              </div>
+              <div class="eqrow">
+                <div class="lbl">ABILITY <span>keys 1-4</span></div>
+                <div class="abrow"></div>
+              </div>
+            </div>
+            <div class="status">
+              <div class="lbl">STATUS</div>
+              <div class="hstats"></div>
+              <div class="statlist"></div>
+            </div>
+          </section>
+          <!-- MINEAR Cart (was the gem bag): one grid of everything carried (src/menus/inventory.ts, src/state/cart.ts) -->
+          <section class="page packpage">
+            <div class="cart">
+              <div class="cart-head">
+                <div class="cart-art"></div>
+                <div class="cart-info">
+                  <div class="cart-title"><b>CART</b><span data-used></span><em>slots</em></div>
+                  <div class="pworth"></div>
+                  <div class="cart-kinds"></div>
+                </div>
+              </div>
+              <div class="cart-grid"></div>
+              <p class="cart-hint"></p>
+            </div>
+          </section>
+          <section class="page skillspage"></section>
+          <footer></footer>
+        </div>
+        <div class="tip hidden"></div>
+        <div class="ctx hidden"></div>
+      </div>
+
+      <div id="start" class="modal">
+        <div class="sheet title">
+          <h1 class="logo"><img src="/minear-logo.svg" alt="MINEAR" width="1000" height="580" /></h1>
+          <p class="tag">Gems are NEAR. Mine them.</p>
+          <!-- ways in (src/menus/lobby.ts): Continue with Google (NEAR Auth on NEAR testnet: trips saved on chain), Connect a
+               NEAR wallet (the player's own testnet account, src/near/session.ts wallet()),
+               Play demo (no account: nothing kept), and Demo cheat (local testnet; dev runs on this machine only) -->
+          <div class="entry">
+            <button id="google-login" class="google" type="button"><span class="gtx"><span class="et">Continue with Google</span><small>NEAR Auth on NEAR testnet</small></span></button>
+            <button id="wallet-login" class="wallet" type="button"><span class="et">Connect a NEAR wallet</span><small>your own testnet account · no popups while you play</small></button>
+            <button id="play" type="button"><span class="et">Play demo</span><small>no account · nothing you mine is kept</small></button>
+            <button id="cheat-entry" class="cheat" type="button" hidden></button>
+            <p class="who"></p>
+          </div>
+          <p class="small" id="net-status"></p>
+          <div id="no3d">
+            <p>Your browser won't switch on <b>3D graphics</b> (WebGL 2), and the game can't run without them. One of these usually fixes it:</p>
+            <ol>
+              <li><b>Turn on hardware acceleration.</b> Chrome, Edge, Brave, Opera: Settings → System → “Use graphics acceleration when available”, then Relaunch.</li>
+              <li><b>Quit the browser completely</b> and open it again. After a graphics crash, browsers block 3D until they restart.</li>
+              <li><b>Update your graphics driver and browser</b>, or try another browser (Firefox if Chrome won't, or the other way round).</li>
+            </ol>
+            <p class="small">To check, open <a href="https://get.webgl.org/webgl2/" target="_blank" rel="noopener">get.webgl.org/webgl2</a>: it shows a spinning cube when 3D works.</p>
+            <p class="small why" id="no3d-why"></p>
+          </div>
+        </div>
+        <!-- the quick boards: Level, Depth, Gold, and the Market prices (filled by src/menus/lobby.ts) -->
+        <aside class="lboard" hidden>
+          <h2>Top miners</h2>
+          <nav class="ltabs" role="tablist"></nav>
+          <ol class="lrows"></ol>
+          <p class="lnote"></p>
+        </aside>
+      </div>
+
+
+      <div id="pause" class="modal hidden">
+        <div class="sheet pause">
+          <h2>Paused</h2>
+          <div class="roster hidden"><p class="count"><i class="live"></i><span></span></p><ul></ul></div>
+          <nav class="menu">
+            <button class="ghost open-settings" type="button">Settings</button>
+            <button class="ghost open-tutorial" type="button" hidden>Skip tutorial</button>
+            <button class="ghost open-controls" type="button">Controls</button>
+            <button class="ghost open-home" type="button">Finish mining trip</button>
+          </nav>
+          <p class="soc">
+            <!-- MINEAR Discord: none yet. Add an <a class="dc"> here when the server exists. -->
+            <a class="xx" href="https://x.com/minear_fun" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" fill="currentColor" /></svg></a>
+          </p>
+          <div class="acct" hidden></div>
+          <footer><kbd>Esc</kbd> to resume</footer>
+        </div>
+      </div>
+
+      <div id="leaders" class="modal hidden">
+        <div class="sheet leaders">
+          <header><h2>The Mirror of Renown</h2><button class="ghost close" type="button" title="Close">✕</button></header>
+          <nav class="tabs"></nav>
+          <p class="note"></p>
+          <ol class="board"></ol>
+          <div class="pager" hidden><button class="ghost prev" type="button" title="Previous page">‹</button><span></span><button class="ghost next" type="button" title="Next page">›</button></div>
+          <p class="you"></p>
+          <footer><kbd>E</kbd> or <kbd>Esc</kbd> to step away</footer>
+        </div>
+      </div>
+
+      <div id="controls" class="modal hidden">
+        <div class="sheet keys">
+          <header><h2>Controls</h2><button class="ghost close" type="button" title="Close">✕</button></header>
+          <h3>On foot</h3>
+          <div class="keygrid">
+            <div><kbd>WASD</kbd> move</div>
+            <div><kbd>Mouse</kbd> look</div>
+            <div><kbd>Shift</kbd> sprint</div>
+            <div>Double-tap <kbd>WASD</kbd> dash</div>
+            <div><kbd>Space</kbd> jump, hold to fly</div>
+            <div><kbd>J</kbd> jetpack on/off</div>
+            <div><kbd>Hold LMB</kbd> burrow: mine, fight, turn bolts away</div>
+            <div><kbd>Hold RMB</kbd> shoot</div>
+            <div><kbd>E</kbd> use, open chests</div>
+            <div><kbd>E</kbd> burrow slam (when charged), then click</div>
+            <div><kbd>1</kbd>–<kbd>4</kbd> belt (bombs)</div>
+            <div><kbd>Tab</kbd> gear · <kbd>B</kbd> cart · <kbd>K</kbd> skills</div>
+            <div><kbd>Enter</kbd> chat</div>
+            <div><kbd>M</kbd> mute</div>
+          </div>
+          <h3>Burrowing <small>deep in the rock</small></h3>
+          <div class="keygrid">
+            <div><kbd>WASD</kbd> fly</div>
+            <div><kbd>E</kbd> or <kbd>Space</kbd> up · <kbd>C</kbd> down</div>
+            <div>Push into rock to mine</div>
+            <div><kbd>Hold LMB</kbd> burrow into the Lost</div>
+            <div><kbd>Hold RMB</kbd> shoot</div>
+          </div>
+          <footer><kbd>Esc</kbd> to close</footer>
+        </div>
+      </div>
+
+      <div id="settings" class="modal hidden">
+        <div class="sheet settings">
+          <header><h2>Settings</h2><button class="ghost close" type="button" title="Close">✕</button></header>
+          <div class="body"></div>
+          <footer>Saved automatically · <kbd>Esc</kbd> to close</footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

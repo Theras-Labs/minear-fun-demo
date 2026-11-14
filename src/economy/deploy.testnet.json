@@ -1,0 +1,15 @@
+{
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "root": "minear.testnet",
+  "contract": "items.minear.testnet",
+  "relayer": "relay.minear.testnet",
+  "merchants": {
+    "smelter": "smelter.minear.testnet",
+    "gemcutter": "gemcutter.minear.testnet",
+    "jeweler": "jeweler.minear.testnet",
+    "wanderer": "wanderer.minear.testnet",
+    "quartermaster": "quartermaster.minear.testnet",
+    "relics": "relics.minear.testnet"
+  }
+}

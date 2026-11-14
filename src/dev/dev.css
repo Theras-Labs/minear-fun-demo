@@ -1,0 +1,719 @@
+/* Debug pages (/dev/...): hide the game's own page layers and show a side panel. */
+body.dev #ui,
+body.dev #loading {
+  display: none !important;
+}
+body.dev {
+  margin: 0;
+  overflow: hidden;
+  background: #08070a;
+  font: 13px/1.4 Inter, system-ui, sans-serif;
+  color: #e9e4f2;
+}
+.dev-panel {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 270px;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  background: rgba(16, 13, 26, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+}
+.dev-panel h1 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.dev-panel h2 {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a99cc7;
+  margin: 12px 0 6px;
+}
+.dev-panel .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dev-panel button {
+  background: #2a2340;
+  color: #e9e4f2;
+  border: 1px solid #3d3360;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dev-panel button:hover {
+  background: #3a3060;
+}
+.dev-panel button.on {
+  background: #ffb23f;
+  color: #2a1a08;
+  border-color: #ffb23f;
+}
+.dev-panel label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+.dev-panel input[type='range'] {
+  flex: 1;
+}
+.dev-panel .info {
+  font: 11px/1.5 'JetBrains Mono', ui-monospace, monospace;
+  color: #cfc6e6;
+  white-space: pre-wrap;
+}
+.dev-panel a {
+  color: #ffd36a;
+}
+.dev-index {
+  padding: 40px;
+}
+.dev-index a {
+  display: block;
+  color: #ffd36a;
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+/* /dev/sound: digging sound candidates */
+.dev-sound {
+  height: 100vh;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 28px clamp(16px, 4vw, 40px) 40px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.dev-sound h1 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+.dev-sound header p {
+  color: #c9c0dc;
+  margin: 0 0 6px;
+  max-width: 70ch;
+}
+.dev-sound .picked b {
+  color: #ffd36a;
+}
+.dev-sound h2 {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a99cc7;
+  margin: 18px 0 8px;
+}
+.dev-sound .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dev-sound button {
+  background: #2a2340;
+  color: #e9e4f2;
+  border: 1px solid #3d3360;
+  border-radius: 7px;
+  padding: 6px 11px;
+  font: inherit;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.dev-sound button:hover {
+  background: #3a3060;
+}
+.dev-sound button.on {
+  background: #ffb23f;
+  color: #2a1a08;
+  border-color: #ffb23f;
+}
+.dev-sound button small {
+  opacity: 0.6;
+  margin-left: 3px;
+}
+.dev-sound .sliders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  margin-top: 14px;
+}
+.dev-sound label {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+}
+.dev-sound label b {
+  color: #ffd36a;
+  font-weight: 600;
+}
+.dev-sound .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.dev-sound article {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.dev-sound article.live {
+  border-color: #6ff3c8;
+  box-shadow: 0 0 0 1px #6ff3c8 inset;
+}
+.dev-sound article.picked {
+  border-color: #ffd36a;
+}
+.dev-sound article h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.dev-sound article p {
+  margin: 0;
+  color: #c9c0dc;
+  min-height: 3.6em;
+}
+.dev-sound button.hold {
+  background: #6b3c16;
+  border-color: #9a5a26;
+}
+.dev-sound button.hold:active {
+  background: #ffb23f;
+  color: #2a1a08;
+}
+.dev-sound .back {
+  display: inline-block;
+  margin-top: 24px;
+  color: #ffd36a;
+}
+
+/* /dev/catalog: read-only tables of foes, bosses, gems, gear and sky states */
+.dev-catalog {
+  height: 100vh;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 28px clamp(16px, 4vw, 40px) 60px;
+  max-width: 1280px;
+  margin: 0 auto;
+  scroll-behavior: smooth;
+}
+.dev-catalog h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+}
+.dev-catalog header p {
+  color: #c9c0dc;
+  margin: 0 0 10px;
+  max-width: 80ch;
+}
+.dev-catalog nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dev-catalog nav a {
+  background: #2a2340;
+  border: 1px solid #3d3360;
+  border-radius: 7px;
+  padding: 4px 10px;
+  color: #e9e4f2;
+  text-decoration: none;
+}
+.dev-catalog nav a:hover {
+  background: #3a3060;
+}
+.dev-catalog nav a.back {
+  color: #ffd36a;
+}
+.dev-catalog section {
+  margin-top: 30px;
+  scroll-margin-top: 12px;
+}
+.dev-catalog h2 {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a99cc7;
+  margin: 0 0 6px;
+}
+.dev-catalog h3 {
+  font-size: 15px;
+  margin: 16px 0 6px;
+}
+.dev-catalog .note {
+  color: #c9c0dc;
+  margin: 0 0 10px;
+  max-width: 100ch;
+}
+.dev-catalog a {
+  color: #ffd36a;
+}
+.dev-catalog code {
+  font: 12px 'JetBrains Mono', ui-monospace, monospace;
+  color: #d9cff2;
+}
+.dev-catalog .dim {
+  color: #8a7fa6;
+  font-weight: 400;
+}
+.dev-catalog .warn {
+  color: #ff7a7a;
+}
+.dev-catalog .scroll {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.dev-catalog table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+}
+.dev-catalog th,
+.dev-catalog td {
+  padding: 5px 9px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dev-catalog th {
+  background: #16121f;
+  color: #a99cc7;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+.dev-catalog th:hover {
+  color: #e9e4f2;
+}
+.dev-catalog tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.dev-catalog .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.dev-catalog .chip {
+  display: inline-block;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+.dev-catalog .flag {
+  color: #6ff3c8;
+}
+.dev-catalog .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 7px;
+  vertical-align: -1px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+.dev-catalog .swatch.none {
+  background: transparent;
+}
+.dev-catalog .pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dev-catalog .pill {
+  background: #221c33;
+  border: 1px solid #3d3360;
+  border-radius: 6px;
+  padding: 0 6px;
+  font-size: 11.5px;
+}
+.dev-catalog .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.dev-catalog article {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  overflow-x: auto;
+}
+.dev-catalog table.mini th,
+.dev-catalog table.mini td {
+  padding: 3px 6px;
+}
+.dev-catalog article h3 {
+  margin: 0 0 2px;
+}
+.dev-catalog article p {
+  margin: 0 0 8px;
+}
+.dev-catalog table.mini th {
+  background: none;
+  cursor: default;
+}
+
+/* /dev/catalog/near: base and NEAR systems (uses the .dev-catalog base styles) */
+.dev-near .split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.dev-near .pico {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed #5a5070;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.dev-near .pico .tag {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  background: #3a3350;
+  color: #cfc6e6;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.dev-near .pico h3 {
+  margin-top: 0;
+}
+.dev-near .odds {
+  display: flex;
+  height: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 4px 0 8px;
+  background: #221c33;
+}
+.dev-near .odds span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #1a1426;
+  min-width: 2px;
+}
+.dev-near .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #c9c0dc;
+}
+.dev-near .legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.dev-near .grade {
+  margin-bottom: 6px;
+}
+.dev-near .grade .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dev-near .flow {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: grid;
+  gap: 6px;
+}
+.dev-near .flow li {
+  background: #221c33;
+  border: 1px solid #3d3360;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.dev-near .arrow {
+  color: #ffd36a;
+  margin: 0 6px;
+}
+.dev-near .plain {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  color: #c9c0dc;
+}
+.dev-near .wrap {
+  white-space: normal;
+  display: inline-block;
+  min-width: 260px;
+}
+.dev-near article.site p {
+  margin: 4px 0;
+}
+.dev-near .plan {
+  color: #d9cff2;
+}
+.dev-near .badge {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.dev-near .badge.open {
+  background: #1f5e45;
+  color: #b8ffe1;
+}
+.dev-near .badge.unlock {
+  background: #5e4a1f;
+  color: #ffe6a8;
+}
+.dev-near .badge.planned,
+.dev-near .badge.soon {
+  background: #4a2433;
+  color: #ffb3c4;
+}
+.dev-near .treewrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.dev-near .tside {
+  flex: 1 1 260px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+}
+.dev-near .tside h3 {
+  margin-top: 0;
+}
+.dev-near .slotrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 4px;
+}
+.dev-near .slot {
+  border: 1px dashed #5a5070;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #8a7fa6;
+}
+.dev-near .slot.open {
+  border-style: solid;
+  border-color: #6ff3c8;
+  color: #e9e4f2;
+}
+.dev-near .slot.buy {
+  border-color: #ffd36a;
+  color: #ffd36a;
+}
+
+.dev-near .split > * {
+  min-width: 0;
+  overflow-x: auto;
+}
+.dev-near .pico td,
+.dev-near .tside td {
+  white-space: normal;
+}
+
+/* /dev/catalog/near: icons, the tree drawing, the quest list */
+.dev-near .ico {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  vertical-align: middle;
+  object-fit: contain;
+  border-radius: 5px;
+}
+.dev-near .ico svg,
+.dev-near .tile svg {
+  width: 100%;
+  height: 100%;
+}
+.dev-near .ico.big {
+  width: 34px;
+  height: 34px;
+}
+.dev-near .ico.node {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+}
+.dev-near .coin {
+  vertical-align: middle;
+}
+.dev-near .named {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dev-near .named h3 {
+  margin: 0;
+}
+.dev-near .mats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+}
+.dev-near .mat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.dev-near .pieces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.dev-near .piece {
+  background: #1c1729;
+  border: 1px solid #3d3360;
+  border-radius: 10px;
+  padding: 8px;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  text-align: center;
+}
+.dev-near .piece .row {
+  display: flex;
+  gap: 4px;
+}
+.dev-near .tile {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  background: #fff4dc;
+  border-radius: 8px;
+  padding: 3px;
+  box-sizing: border-box;
+}
+.dev-near .kinds {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.dev-near .kinds li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.dev-near .treescroll {
+  flex: 1 1 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+.dev-near .tree {
+  position: relative;
+}
+.dev-near .tree .links {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dev-near .tree .links text {
+  fill: #e9e4f2;
+  font-size: 11px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #08070a;
+  stroke-width: 4px;
+}
+.dev-near .tnode {
+  position: absolute;
+  width: 92px;
+  height: 88px;
+  background: #1c1729;
+  color: #e9e4f2;
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 4px;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.15;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+}
+.dev-near .tnode.big {
+  box-shadow: 0 0 0 3px rgba(255, 211, 106, 0.35);
+}
+.dev-near .tnode.on {
+  background: #3a3060;
+}
+.dev-near .pips {
+  display: flex;
+  gap: 3px;
+}
+.dev-near .pips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6a5f88;
+}
+.dev-near .jobs {
+  margin: 0 0 8px;
+  padding-left: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 6px 14px;
+}
+.dev-near .jobs li {
+  background: #1c1729;
+  border: 1px solid #3d3360;
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: grid;
+  gap: 4px;
+}
+.dev-near .jobs li.paycoin {
+  border-color: #ffd36a;
+}
+.dev-near .jobs .jtext {
+  color: #e9e4f2;
+}
+.dev-near .slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

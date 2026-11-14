@@ -1,0 +1,84 @@
+/* MINEAR rarity stars (folder: minear-r3f/src/brand). Markup: minear-r3f/src/ui/stars.ts starsHTML().
+   Gold stars with the ink outline of every MINEAR tile; Legendary stars glow. */
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.04em;
+  line-height: 0;
+  vertical-align: -0.12em;
+  font-size: 13px;
+  pointer-events: none;
+}
+.stars svg {
+  /* !important: tile rules such as `.fv-rv .itile svg` size the item icon and must not size a star */
+  width: 1em !important;
+  height: 1em !important;
+  position: static !important;
+  flex: none;
+  overflow: visible;
+  fill: #ffd250;
+  stroke: var(--ink, #3a281c);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+.stars.s5 svg { fill: #ffc23d; filter: drop-shadow(0 0 2px #fff3b0); }
+/* an empty star: the outline only, on a faint fill */
+.stars svg.off { fill: #3a281c2e; stroke: #3a281c99; filter: none; }
+
+/* on an item tile: a row inside the tile, along its bottom; the icon moves up to make room (user, 2026-11-14:
+   the row hung off the edge before). Filled stars take the rarity colour, like theras-rpg-template. */
+.itile:has(> .stars.tile),
+.hs-tile:has(> .stars.tile) { position: relative; }
+.itile:has(> .stars.tile) > img,
+.itile:has(> .stars.tile) > svg { translate: 0 -5px; }
+.stars.tile {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-size: 10px;
+  gap: 0;
+}
+.stars.tile svg { stroke-width: 3.2; }
+.stars.tile svg.on { fill: var(--tc, #ffd250); }
+.itile.t4 .stars.tile svg.on { fill: #ffc23d; }
+.stars.tile svg.off { fill: #3a281c40; stroke: #3a281c8c; }
+
+/* MINEAR gear tiles: the background takes the rarity colour, so each rarity looks different (user, 2026-11-14) */
+.itile.t0,
+.itile.t1,
+.itile.t2,
+.itile.t3,
+.itile.t4 {
+  background: radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--tc) 42%, #fffaf0) 0%, color-mix(in srgb, var(--tc) 62%, #d9c7a4) 92%);
+}
+
+/* the Forge reveal: big stars that pop in one by one after the piece shows (--d: the reveal delay) */
+.stars.big {
+  font-size: 26px;
+  gap: 3px;
+  margin: -6px 0 -4px;
+}
+.stars.big svg {
+  stroke-width: 2.2;
+  animation: starPop 0.34s cubic-bezier(0.2, 1.7, 0.4, 1) calc(var(--d, 0s) + 0.12s + var(--i) * 0.11s) both;
+}
+@keyframes starPop {
+  from { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stars.big svg { animation: none; }
+}
+
+/* dark menus (the gear chooser, the tile menu, tips): light empty stars */
+#inv .ctx .stars svg.off,
+.tip .stars svg.off { fill: #ffffff1f; stroke: #fff6e580; }
+/* the chooser's small tiles: the stars sit on the name line instead */
+#inv .ctx .chrow .stars.tile { display: none; }
+#inv .ctx .chrow .itile > img,
+#inv .ctx .chrow .itile > svg { translate: none; }
+#inv .ctx .chrow small .stars { font-size: 10px; margin-right: 2px; }
+#inv .ctx .chrow .chnm small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
